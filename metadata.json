@@ -1,0 +1,11 @@
+{
+  "name": "Ecode",
+  "description": "Мобильное приложение для сканирования QR-кодов с камеры и экрана, воссоздания в безупречном чистом качестве, генерации и организации по папкам.",
+  "requestFramePermissions": [
+    "camera",
+    "display-capture"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
