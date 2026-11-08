@@ -29,10 +29,13 @@ import { generateQrDataUrl, downloadQr, copyQrToClipboard } from '../utils/qrRen
 import { TurnstileModal } from './TurnstileModal';
 import { playTapSound, triggerHaptic } from '../utils/audio';
 import { Language, TRANSLATIONS, getLocalizedFolderName } from '../utils/i18n';
+import { ThemeMode } from '../utils/theme';
+import { FolderSelect } from './FolderSelect';
 
 interface GeneratorViewProps {
   folders: Folder[];
   lang?: Language;
+  theme?: ThemeMode;
   onSaveToGallery: (item: Omit<StoredQrItem, 'id' | 'createdAt'>) => void;
   onOpenGallery: () => void;
 }
@@ -47,7 +50,7 @@ const COLOR_PRESETS = [
   { name: 'AMOLED Тёмный', nameEn: 'AMOLED Dark', fg: '#a8f09b', bg: '#121316' },
 ];
 
-export function GeneratorView({ folders, lang = 'ru', onSaveToGallery, onOpenGallery }: GeneratorViewProps) {
+export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGallery, onOpenGallery }: GeneratorViewProps) {
   const t = TRANSLATIONS[lang];
   const [template, setTemplate] = useState<GeneratorTemplate>('text');
 
@@ -565,20 +568,17 @@ export function GeneratorView({ folders, lang = 'ru', onSaveToGallery, onOpenGal
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[#c4c7c5] block mb-1">
+                <label className="text-xs font-semibold text-[#c4c7c5] block mb-1.5">
                   {t.folderLabel}
                 </label>
-                <select
-                  value={selectedFolderId}
-                  onChange={(e) => setSelectedFolderId(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-[#282a2f] text-xs text-[#e3e2e6] focus:outline-none focus:ring-2 focus:ring-[#a8f09b] cursor-pointer border-none"
-                >
-                  {folders.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      📁 {getLocalizedFolderName(f.id, f.name, lang)}
-                    </option>
-                  ))}
-                </select>
+                <FolderSelect
+                  folders={folders}
+                  selectedFolderId={selectedFolderId}
+                  onSelectFolder={setSelectedFolderId}
+                  lang={lang}
+                  theme={theme}
+                  ariaLabel={t.folderLabel}
+                />
               </div>
             </div>
 

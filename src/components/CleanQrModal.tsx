@@ -27,6 +27,7 @@ import { TurnstileModal } from './TurnstileModal';
 import { playTapSound, triggerHaptic } from '../utils/audio';
 import { Language, TRANSLATIONS, getLocalizedFolderName } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
+import { FolderSelect } from './FolderSelect';
 
 interface CleanQrModalProps {
   isOpen: boolean;
@@ -508,23 +509,17 @@ export function CleanQrModal({
               </div>
 
               <div>
-                <label className="text-[11px] font-medium text-[#8e918f] block mb-1">
+                <label className={`text-[11px] font-medium block mb-1.5 ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
                   {t.folderLabel}
                 </label>
-                <div className="relative">
-                  <select
-                    value={folderId}
-                    onChange={(e) => setFolderId(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-[#282a2f] text-sm text-[#e3e2e6] focus:outline-none focus:ring-2 focus:ring-[#a8f09b] appearance-none cursor-pointer border-none"
-                  >
-                    {folders.map((f) => (
-                      <option key={f.id} value={f.id}>
-                        📁 {getLocalizedFolderName(f.id, f.name, lang)}
-                      </option>
-                    ))}
-                  </select>
-                  <FolderIcon className="w-4 h-4 text-[#8e918f] absolute right-4 top-3 pointer-events-none" />
-                </div>
+                <FolderSelect
+                  folders={folders}
+                  selectedFolderId={folderId}
+                  onSelectFolder={setFolderId}
+                  lang={lang}
+                  theme={theme}
+                  ariaLabel={t.folderLabel}
+                />
               </div>
 
               <div>

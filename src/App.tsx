@@ -278,6 +278,7 @@ export default function App() {
           <GeneratorView
             folders={folders}
             lang={lang}
+            theme={theme}
             onSaveToGallery={handleSaveToGallery}
             onOpenGallery={() => setActiveTab('gallery')}
           />

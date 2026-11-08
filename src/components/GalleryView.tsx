@@ -24,6 +24,7 @@ import { Folder, StoredQrItem, filterAndSortQrItems } from '../utils/qrLogic';
 import { generateQrDataUrl } from '../utils/qrRenderer';
 import { playTapSound, triggerHaptic } from '../utils/audio';
 import { Language, TRANSLATIONS, getLocalizedFolderName } from '../utils/i18n';
+import { getFolderIcon } from './FolderSelect';
 
 interface GalleryViewProps {
   items: StoredQrItem[];
@@ -252,10 +253,9 @@ export function GalleryView({
                   : 'bg-[#1e1f23] text-[#c4c7c5] hover:bg-[#282a2f] border border-white/[0.04]'
               }`}
             >
-              <span
-                className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: f.color }}
-              />
+              <span className="shrink-0" style={{ color: f.color }}>
+                {getFolderIcon(f, "w-3.5 h-3.5")}
+              </span>
               <span>{localizedName}</span>
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
                 isSelected ? 'bg-[#244927] text-[#c4fbb8]' : 'bg-[#282a2f] text-[#8e918f]'
@@ -338,10 +338,9 @@ export function GalleryView({
                 {/* Top Row: Folder Tag & Favorite Star */}
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#282a2f] text-[#e3e2e6]">
-                    <span
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: folder.color }}
-                    />
+                    <span className="shrink-0" style={{ color: folder.color }}>
+                      {getFolderIcon(folder, "w-3 h-3")}
+                    </span>
                     <span className="truncate max-w-[130px]">{localizedFolderName}</span>
                   </div>
 
@@ -449,10 +448,9 @@ export function GalleryView({
                                 item.folderId === f.id ? 'text-[#a8f09b] font-bold bg-[#394738]/50' : 'text-[#e3e2e6]'
                               }`}
                             >
-                              <span
-                                className="w-2 h-2 rounded-full shrink-0"
-                                style={{ backgroundColor: f.color }}
-                              />
+                              <span className="shrink-0" style={{ color: f.color }}>
+                                {getFolderIcon(f, "w-3.5 h-3.5")}
+                              </span>
                               <span className="truncate">{getLocalizedFolderName(f.id, f.name, lang)}</span>
                             </button>
                           ))}
