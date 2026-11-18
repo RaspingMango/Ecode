@@ -234,6 +234,7 @@ export const TRANSLATIONS = {
     feature2Desc: 'Считанный QR или штрихкод отрисовывается заново для удобного сканирования на турникетах и кассах.',
     feature3Title: 'Галерея и папки',
     feature3Desc: 'Раскладывайте билеты, карты лояльности, Wi-Fi и штрихкоды по категориям.',
+    githubRepoTitle: 'Исходный код на GitHub',
     aboutUnderstood: 'Понятно',
 
     // Default Folder Translations
@@ -477,6 +478,7 @@ export const TRANSLATIONS = {
     feature2Desc: 'Re-renders scanned QR codes and barcodes cleanly for turnstiles and checkout scanners.',
     feature3Title: 'Gallery & Folders',
     feature3Desc: 'Organize tickets, loyalty cards, Wi-Fi credentials and barcodes with ease.',
+    githubRepoTitle: 'GitHub Repository',
     aboutUnderstood: 'Got It',
 
     // Default Folder Translations

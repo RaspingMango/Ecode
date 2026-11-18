@@ -11,6 +11,8 @@ import {
   X,
   QrCode,
   Settings as SettingsIcon,
+  Github,
+  ExternalLink,
 } from 'lucide-react';
 import { ScannerView } from './components/ScannerView';
 import { GalleryView } from './components/GalleryView';
@@ -561,6 +563,27 @@ export default function App() {
                   <strong className={theme === 'dark' ? 'text-[#e3e2e6]' : 'text-[#191c19]'}>{t.feature3Title}:</strong> {t.feature3Desc}
                 </span>
               </div>
+              <a
+                href="https://github.com/RaspingMango/Ecode"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center justify-between gap-3 p-3 rounded-2xl transition-colors border ${
+                  theme === 'dark'
+                    ? 'bg-[#282a2f] hover:bg-[#33353a] border-white/[0.06] text-[#e3e2e6]'
+                    : 'bg-[#eef1ec] hover:bg-[#e2e6df] border-black/[0.06] text-[#191c19]'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Github className={`w-4 h-4 shrink-0 ${theme === 'dark' ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
+                  <div className="min-w-0">
+                    <div className="font-bold text-xs leading-tight">{t.githubRepoTitle}</div>
+                    <div className={`text-[11px] truncate ${theme === 'dark' ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`}>
+                      github.com/RaspingMango/Ecode
+                    </div>
+                  </div>
+                </div>
+                <ExternalLink className={`w-3.5 h-3.5 shrink-0 ${theme === 'dark' ? 'text-[#8e918f]' : 'text-[#575a56]'}`} />
+              </a>
             </div>
 
             <button

@@ -17,6 +17,8 @@ import {
   FolderSync,
   Info,
   AlertCircle,
+  Github,
+  ExternalLink,
 } from 'lucide-react';
 import { Language, TRANSLATIONS } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
@@ -455,35 +457,59 @@ export function SettingsView({
       </div>
 
       {/* 5. App Info Card */}
-      <div className={`rounded-[28px] p-5 shadow-xl transition-colors duration-200 border flex items-center justify-between ${
+      <div className={`rounded-[28px] p-5 shadow-xl transition-colors duration-200 border space-y-3 ${
         isDark ? 'bg-[#1e1f23] border-white/[0.04]' : 'bg-white border-black/[0.06] shadow-sm'
       }`}>
-        <div className="flex items-center gap-3">
-          <Info className={`w-5 h-5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
-          <div>
-            <div className="text-xs font-bold">
-              Ecode • {t.appVersion} 1.2
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <Info className={`w-5 h-5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
+            <div>
+              <div className="text-xs font-bold">
+                Ecode • {t.appVersion} 1.2
+              </div>
+              <p className={`text-[10px] ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
+                Material You • Offline First • Private
+              </p>
             </div>
-            <p className={`text-[10px] ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
-              Material You • Offline First • Private
-            </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              playTapSound();
+              onOpenAbout();
+            }}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-colors shrink-0 ${
+              isDark
+                ? 'bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6]'
+                : 'bg-[#e9ece5] hover:bg-[#dfe3db] text-[#191c19]'
+            }`}
+          >
+            {t.aboutApp}
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            playTapSound();
-            onOpenAbout();
-          }}
-          className={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${
+        <a
+          href="https://github.com/RaspingMango/Ecode"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`w-full p-3 rounded-2xl flex items-center justify-between gap-2 transition-colors border ${
             isDark
-              ? 'bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6]'
-              : 'bg-[#e9ece5] hover:bg-[#dfe3db] text-[#191c19]'
+              ? 'bg-[#282a2f] hover:bg-[#33353a] border-white/[0.04] text-[#e3e2e6]'
+              : 'bg-[#f2f4ef] hover:bg-[#eaece6] border-black/[0.05] text-[#191c19]'
           }`}
         >
-          {t.aboutApp}
-        </button>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Github className={`w-4 h-4 shrink-0 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
+            <div className="min-w-0">
+              <div className="text-xs font-semibold leading-tight">{t.githubRepoTitle}</div>
+              <div className={`text-[11px] truncate ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`}>
+                https://github.com/RaspingMango/Ecode
+              </div>
+            </div>
+          </div>
+          <ExternalLink className={`w-3.5 h-3.5 shrink-0 ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`} />
+        </a>
       </div>
 
       {/* Reset Confirmation Modal */}
