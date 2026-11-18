@@ -20,6 +20,7 @@ import { CleanQrModal } from './components/CleanQrModal';
 import { FolderModal } from './components/FolderModal';
 import { TurnstileModal } from './components/TurnstileModal';
 import {
+  CodeFormat,
   StoredQrItem,
   Folder,
 } from './utils/qrLogic';
@@ -49,6 +50,7 @@ export default function App() {
   // Modal states
   const [cleanModalOpen, setCleanModalOpen] = useState(false);
   const [scannedRawContent, setScannedRawContent] = useState<string>('');
+  const [scannedFormat, setScannedFormat] = useState<CodeFormat>('QR_CODE');
   const [scannedSource, setScannedSource] = useState<'camera' | 'screen' | 'file' | 'generated'>('camera');
   const [selectedItemForModal, setSelectedItemForModal] = useState<StoredQrItem | null>(null);
 
@@ -89,9 +91,14 @@ export default function App() {
     setFolders(reset.folders);
   };
 
-  // Handle scanned QR detection from Camera, Screen capture, or File
-  const handleQrDetected = (rawText: string, source: 'camera' | 'screen' | 'file') => {
+  // Handle scanned QR or barcode detection from Camera, Screen capture, or File
+  const handleQrDetected = (
+    rawText: string,
+    source: 'camera' | 'screen' | 'file',
+    codeFormat: CodeFormat = 'QR_CODE'
+  ) => {
     setScannedRawContent(rawText);
+    setScannedFormat(codeFormat);
     setScannedSource(source);
     setSelectedItemForModal(null);
     setCleanModalOpen(true);
@@ -100,6 +107,7 @@ export default function App() {
   // Open existing item from gallery in CleanQrModal
   const handleSelectItemFromGallery = (item: StoredQrItem) => {
     setScannedRawContent(item.rawContent);
+    setScannedFormat(item.codeFormat || 'QR_CODE');
     setScannedSource(item.source);
     setSelectedItemForModal(item);
     setCleanModalOpen(true);
@@ -228,7 +236,7 @@ export default function App() {
               aria-label={t.soundOn}
             >
               {soundEnabled ? (
-                <Volume2 className="w-4 h-4 text-[#a8f09b]" />
+                <Volume2 className={`w-4 h-4 ${theme === 'dark' ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
               ) : (
                 <VolumeX className="w-4 h-4 text-[#8e918f]" />
               )}
@@ -253,7 +261,7 @@ export default function App() {
       {/* Main Screen Content View */}
       <main className="flex-1 pb-28 pt-2">
         {activeTab === 'scanner' && (
-          <ScannerView onQrDetected={handleQrDetected} lang={lang} />
+          <ScannerView onQrDetected={handleQrDetected} lang={lang} theme={theme} />
         )}
 
         {activeTab === 'gallery' && (
@@ -261,6 +269,7 @@ export default function App() {
             items={items}
             folders={folders}
             lang={lang}
+            theme={theme}
             onSelectItem={handleSelectItemFromGallery}
             onOpenTurnstile={handleOpenTurnstile}
             onToggleFavorite={handleToggleFavorite}
@@ -436,6 +445,7 @@ export default function App() {
         isOpen={cleanModalOpen}
         onClose={() => setCleanModalOpen(false)}
         rawContent={scannedRawContent}
+        codeFormat={scannedFormat}
         existingItem={selectedItemForModal}
         source={scannedSource}
         folders={folders}
@@ -454,6 +464,7 @@ export default function App() {
           }}
           title={turnstileTarget.title}
           rawContent={turnstileTarget.rawContent}
+          codeFormat={turnstileTarget.codeFormat}
           folderName={folders.find((f) => f.id === turnstileTarget.folderId)?.name}
           lang={lang}
         />

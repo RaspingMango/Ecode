@@ -15,17 +15,21 @@ import {
   Check,
 } from 'lucide-react';
 import { scanImageData, scanImageFile } from '../utils/qrScanner';
+import type { CodeFormat } from '../utils/qrLogic';
 import { playScanSuccessSound, playTapSound, triggerHaptic } from '../utils/audio';
 import { Language, TRANSLATIONS } from '../utils/i18n';
+import { ThemeMode } from '../utils/theme';
 
 interface ScannerViewProps {
-  onQrDetected: (rawText: string, source: 'camera' | 'screen' | 'file') => void;
+  onQrDetected: (rawText: string, source: 'camera' | 'screen' | 'file', codeFormat?: CodeFormat) => void;
   lang?: Language;
+  theme?: ThemeMode;
 }
 
 type ScanMode = 'camera' | 'screen' | 'file';
 
-export function ScannerView({ onQrDetected, lang = 'ru' }: ScannerViewProps) {
+export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark' }: ScannerViewProps) {
+  const isDark = theme === 'dark';
   const t = TRANSLATIONS[lang];
   const [mode, setMode] = useState<ScanMode>('camera');
   const [isScanning, setIsScanning] = useState(false);
@@ -95,7 +99,7 @@ export function ScannerView({ onQrDetected, lang = 'ru' }: ScannerViewProps) {
           playScanSuccessSound();
           triggerHaptic([40, 30, 80]);
           stopCurrentStream();
-          onQrDetected(result.data, mode === 'screen' ? 'screen' : 'camera');
+          onQrDetected(result.data, mode === 'screen' ? 'screen' : 'camera', result.format);
           return;
         }
       }
@@ -235,11 +239,11 @@ export function ScannerView({ onQrDetected, lang = 'ru' }: ScannerViewProps) {
       if (result && result.data) {
         playScanSuccessSound();
         triggerHaptic([40, 30, 80]);
-        onQrDetected(result.data, 'file');
+        onQrDetected(result.data, 'file', result.format);
       } else {
         setErrorMsg(lang === 'ru'
-          ? 'QR-код на изображении не найден. Убедитесь, что код виден четко и не обрезан.'
-          : 'No QR code was detected in the image. Please make sure the code is clear and not cropped.'
+          ? 'QR-код или штрихкод на изображении не найден. Убедитесь, что код виден четко и не обрезан.'
+          : 'No QR code or barcode was detected in the image. Make sure the code is clear and uncropped.'
         );
       }
     } catch (err: any) {
@@ -274,8 +278,8 @@ export function ScannerView({ onQrDetected, lang = 'ru' }: ScannerViewProps) {
         }
       }
       setErrorMsg(lang === 'ru'
-        ? 'В буфере обмена нет изображения. Сделайте скриншот с QR-кодом и нажмите кнопку снова.'
-        : 'No image found in clipboard. Take a screenshot with a QR code and try again.'
+        ? 'В буфере обмена нет изображения. Сделайте скриншот с кодом и нажмите кнопку снова.'
+        : 'No image found in clipboard. Take a screenshot with a QR code or barcode and try again.'
       );
     } catch (err: any) {
       setErrorMsg((lang === 'ru' ? 'Не удалось прочитать буфер обмена: ' : 'Failed to read clipboard: ') + (err.message || ''));
@@ -284,8 +288,14 @@ export function ScannerView({ onQrDetected, lang = 'ru' }: ScannerViewProps) {
     }
   };
 
-  const handleTestSample = (sampleType: 'ticket' | 'loyalty' | 'wifi') => {
+  const handleTestSample = (sampleType: 'ticket' | 'loyalty' | 'wifi' | 'barcode') => {
     playTapSound();
+    playScanSuccessSound();
+    triggerHaptic();
+    if (sampleType === 'barcode') {
+      onQrDetected('4607004650932', 'file', 'EAN_13');
+      return;
+    }
     let text = '';
     if (sampleType === 'ticket') {
       text = 'TICKET:AEROFLOT:SU-1120:GATE-14B:SEAT-03A:CONF-992019';
@@ -294,9 +304,7 @@ export function ScannerView({ onQrDetected, lang = 'ru' }: ScannerViewProps) {
     } else {
       text = 'WIFI:S:Guest_Cafe_Free;T:WPA;P:CoffeeAndCake2026;;';
     }
-    playScanSuccessSound();
-    triggerHaptic();
-    onQrDetected(text, 'file');
+    onQrDetected(text, 'file', 'QR_CODE');
   };
 
   return (
@@ -453,7 +461,7 @@ export function ScannerView({ onQrDetected, lang = 'ru' }: ScannerViewProps) {
             </button>
 
             <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#282a2f]/80 text-xs text-[#c4c7c5] text-left">
-              <HelpCircle className="w-4 h-4 text-[#a8f09b] shrink-0 mt-0.5" />
+              <HelpCircle className={`w-4 h-4 shrink-0 mt-0.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
               <span>{t.screenModeTip}</span>
             </div>
           </div>
@@ -477,7 +485,7 @@ export function ScannerView({ onQrDetected, lang = 'ru' }: ScannerViewProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
               <label className="py-3 px-4 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] active:scale-95 text-[#e3e2e6] text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm">
-                <Upload className="w-4 h-4 text-[#a8f09b]" />
+                <Upload className={`w-4 h-4 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
                 <span>{t.chooseFromGallery}</span>
                 <input
                   type="file"
@@ -496,14 +504,14 @@ export function ScannerView({ onQrDetected, lang = 'ru' }: ScannerViewProps) {
                 disabled={isProcessingFile}
                 className="py-3 px-4 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] active:scale-95 text-[#e3e2e6] text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm"
               >
-                <Clipboard className="w-4 h-4 text-[#d0bcff]" />
+                <Clipboard className={`w-4 h-4 ${isDark ? 'text-[#d0bcff]' : 'text-[#6d28d9]'}`} />
                 <span>{t.pasteScreenshot}</span>
               </button>
             </div>
 
             {isProcessingFile && (
-              <div className="flex items-center gap-2 text-xs text-[#a8f09b] py-1 font-medium animate-pulse">
-                <div className="w-3.5 h-3.5 border-2 border-[#a8f09b] border-t-transparent rounded-full animate-spin" />
+              <div className={`flex items-center gap-2 text-xs py-1 font-medium animate-pulse ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`}>
+                <div className={`w-3.5 h-3.5 border-2 ${isDark ? 'border-[#a8f09b]' : 'border-[#2e6c31]'} border-t-transparent rounded-full animate-spin`} />
                 <span>{t.analyzingImage}</span>
               </div>
             )}
@@ -542,7 +550,7 @@ export function ScannerView({ onQrDetected, lang = 'ru' }: ScannerViewProps) {
       <div className="bg-[#1e1f23] rounded-[24px] p-3.5 space-y-2 border border-white/[0.04]">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-[#c4c7c5] flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#a8f09b]" />
+            <Sparkles className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
             {t.quickScanTest}
           </span>
           <span className="text-[10px] text-[#8e918f]">
@@ -550,7 +558,7 @@ export function ScannerView({ onQrDetected, lang = 'ru' }: ScannerViewProps) {
           </span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <button
             onClick={() => handleTestSample('ticket')}
             className="py-2 px-2.5 rounded-full bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6] text-[11px] font-semibold transition-all active:scale-95 text-center truncate border border-white/[0.04]"
@@ -568,6 +576,12 @@ export function ScannerView({ onQrDetected, lang = 'ru' }: ScannerViewProps) {
             className="py-2 px-2.5 rounded-full bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6] text-[11px] font-semibold transition-all active:scale-95 text-center truncate border border-white/[0.04]"
           >
             {t.sampleWifi}
+          </button>
+          <button
+            onClick={() => handleTestSample('barcode')}
+            className="py-2 px-2.5 rounded-full bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6] text-[11px] font-semibold transition-all active:scale-95 text-center truncate border border-white/[0.04]"
+          >
+            {t.sampleBarcode}
           </button>
         </div>
       </div>

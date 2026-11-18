@@ -1,4 +1,11 @@
 import QRCode from 'qrcode';
+import JsBarcode from 'jsbarcode';
+import {
+  CodeFormat,
+  getJsBarcodeFormat,
+  is1DBarcodeFormat,
+  validateBarcodePayload,
+} from './qrLogic';
 
 export interface QrRenderOptions {
   fgColor?: string;
@@ -6,6 +13,8 @@ export interface QrRenderOptions {
   ecc?: 'L' | 'M' | 'Q' | 'H';
   margin?: number;
   width?: number;
+  codeFormat?: CodeFormat;
+  displayValue?: boolean;
 }
 
 export const DEFAULT_QR_OPTIONS: Required<QrRenderOptions> = {
@@ -14,16 +23,52 @@ export const DEFAULT_QR_OPTIONS: Required<QrRenderOptions> = {
   ecc: 'M',
   margin: 2,
   width: 512,
+  codeFormat: 'QR_CODE',
+  displayValue: true,
 };
 
+function getBarcodeDimensions(targetWidth: number, margin: number) {
+  const isThumb = targetWidth <= 200;
+  const barWidth = isThumb ? 2 : targetWidth >= 850 ? 4 : 3;
+  const barHeight = isThumb ? 72 : targetWidth >= 850 ? 180 : 130;
+  const fontSize = isThumb ? 14 : targetWidth >= 850 ? 24 : 18;
+  const pixelMargin = Math.max(8, margin * (isThumb ? 5 : 8));
+  return { barWidth, barHeight, fontSize, pixelMargin };
+}
+
 /**
- * Generates a clean high-resolution data URL (PNG)
+ * Generates a clean high-resolution data URL (PNG) for QR codes and 1D barcodes
  */
 export async function generateQrDataUrl(
   text: string,
   options: QrRenderOptions = {}
 ): Promise<string> {
   const opts = { ...DEFAULT_QR_OPTIONS, ...options };
+
+  if (is1DBarcodeFormat(opts.codeFormat)) {
+    const validation = validateBarcodePayload(text, opts.codeFormat);
+    if (!validation.valid) {
+      throw new Error(`Invalid ${opts.codeFormat} barcode payload: ${validation.errorKey}`);
+    }
+
+    const canvas = document.createElement('canvas');
+    const { barWidth, barHeight, fontSize, pixelMargin } = getBarcodeDimensions(opts.width, opts.margin);
+    JsBarcode(canvas, validation.normalizedValue, {
+      format: getJsBarcodeFormat(opts.codeFormat),
+      lineColor: opts.fgColor,
+      background: opts.bgColor,
+      width: barWidth,
+      height: barHeight,
+      margin: pixelMargin,
+      displayValue: opts.displayValue,
+      font: 'monospace',
+      fontOptions: 'bold',
+      fontSize,
+      textMargin: 6,
+    });
+    return canvas.toDataURL('image/png');
+  }
+
   try {
     return await QRCode.toDataURL(text, {
       errorCorrectionLevel: opts.ecc,
@@ -41,13 +86,38 @@ export async function generateQrDataUrl(
 }
 
 /**
- * Generates pristine vector SVG string
+ * Generates pristine vector SVG string for QR codes and 1D barcodes
  */
 export async function generateQrSvg(
   text: string,
   options: QrRenderOptions = {}
 ): Promise<string> {
   const opts = { ...DEFAULT_QR_OPTIONS, ...options };
+
+  if (is1DBarcodeFormat(opts.codeFormat)) {
+    const validation = validateBarcodePayload(text, opts.codeFormat);
+    if (!validation.valid) {
+      throw new Error(`Invalid ${opts.codeFormat} barcode payload: ${validation.errorKey}`);
+    }
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const { barWidth, barHeight, fontSize, pixelMargin } = getBarcodeDimensions(opts.width, opts.margin);
+    JsBarcode(svg, validation.normalizedValue, {
+      format: getJsBarcodeFormat(opts.codeFormat),
+      lineColor: opts.fgColor,
+      background: opts.bgColor,
+      width: barWidth,
+      height: barHeight,
+      margin: pixelMargin,
+      displayValue: opts.displayValue,
+      font: 'monospace',
+      fontOptions: 'bold',
+      fontSize,
+      textMargin: 6,
+    });
+    return new XMLSerializer().serializeToString(svg);
+  }
+
   try {
     return await QRCode.toString(text, {
       type: 'svg',
@@ -66,7 +136,7 @@ export async function generateQrSvg(
 }
 
 /**
- * Download pristine QR as PNG or SVG file
+ * Download pristine QR or barcode as PNG or SVG file
  */
 export async function downloadQr(
   text: string,
@@ -74,7 +144,7 @@ export async function downloadQr(
   format: 'png' | 'svg' = 'png',
   options: QrRenderOptions = {}
 ): Promise<void> {
-  const safeName = fileName.replace(/[^a-zA-Z0-9_-]/g, '_') || 'qr-code';
+  const safeName = fileName.replace(/[^a-zA-Z0-9_-]/g, '_') || 'ecode';
 
   if (format === 'svg') {
     const svgStr = await generateQrSvg(text, options);
@@ -99,7 +169,7 @@ export async function downloadQr(
 }
 
 /**
- * Copies the pristine QR image directly to clipboard
+ * Copies the pristine QR or barcode image directly to clipboard
  */
 export async function copyQrToClipboard(
   text: string,

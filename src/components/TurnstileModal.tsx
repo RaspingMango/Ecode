@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { X, SunMedium, Smartphone, Sparkles } from 'lucide-react';
+import { CodeFormat, getBarcodeFormatLabel, is1DBarcodeFormat } from '../utils/qrLogic';
 import { generateQrDataUrl } from '../utils/qrRenderer';
 import { Language, TRANSLATIONS } from '../utils/i18n';
 
@@ -8,6 +9,7 @@ interface TurnstileModalProps {
   onClose: () => void;
   title: string;
   rawContent: string;
+  codeFormat?: CodeFormat;
   folderName?: string;
   lang?: Language;
 }
@@ -17,11 +19,13 @@ export function TurnstileModal({
   onClose,
   title,
   rawContent,
+  codeFormat = 'QR_CODE',
   folderName,
   lang = 'ru',
 }: TurnstileModalProps) {
   const t = TRANSLATIONS[lang];
   const [dataUrl, setDataUrl] = useState<string>('');
+  const isBarcode = is1DBarcodeFormat(codeFormat);
 
   useEffect(() => {
     if (!isOpen || !rawContent) return;
@@ -32,6 +36,7 @@ export function TurnstileModal({
       ecc: 'H',
       margin: 2,
       width: 900,
+      codeFormat,
     }).then(setDataUrl).catch(console.error);
 
     let wakeLock: any = null;
@@ -48,7 +53,7 @@ export function TurnstileModal({
         wakeLock.release().catch(() => {});
       }
     };
-  }, [isOpen, rawContent]);
+  }, [isOpen, rawContent, codeFormat]);
 
   if (!isOpen) return null;
 
@@ -74,27 +79,40 @@ export function TurnstileModal({
         </button>
       </div>
 
-      {/* Main QR Display Section */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm my-auto">
-        {folderName && (
-          <span className="text-xs uppercase tracking-wider font-bold text-slate-600 mb-1.5 px-3 py-1 rounded-full bg-slate-100">
-            {folderName}
-          </span>
-        )}
+      {/* Main Code Display Section */}
+      <div className={`flex-1 flex flex-col items-center justify-center w-full my-auto ${isBarcode ? 'max-w-md' : 'max-w-sm'}`}>
+        <div className="flex items-center gap-2 mb-1.5 flex-wrap justify-center">
+          {folderName && (
+            <span className="text-xs uppercase tracking-wider font-bold text-slate-600 px-3 py-1 rounded-full bg-slate-100">
+              {folderName}
+            </span>
+          )}
+          {isBarcode && (
+            <span className="text-xs uppercase tracking-wider font-bold text-emerald-800 px-3 py-1 rounded-full bg-emerald-100">
+              {getBarcodeFormatLabel(codeFormat)}
+            </span>
+          )}
+        </div>
         <h2 className="text-xl sm:text-2xl font-black text-center text-slate-950 mb-4 px-2 leading-tight">
           {title}
         </h2>
 
-        {/* Pure White Background Box with Pristine QR */}
-        <div className="bg-white p-4 rounded-[32px] shadow-2xl border-4 border-slate-900/10 flex items-center justify-center">
+        {/* Pure White Background Box with Pristine Code */}
+        <div className={`bg-white rounded-[32px] shadow-2xl border-4 border-slate-900/10 flex items-center justify-center ${
+          isBarcode ? 'w-full px-5 py-6' : 'p-4'
+        }`}>
           {dataUrl ? (
             <img
               src={dataUrl}
               alt={title}
-              className="w-64 h-64 sm:w-80 sm:h-80 object-contain image-rendering-pixelated"
+              className={
+                isBarcode
+                  ? 'w-full max-h-52 object-contain'
+                  : 'w-64 h-64 sm:w-80 sm:h-80 object-contain image-rendering-pixelated'
+              }
             />
           ) : (
-            <div className="w-64 h-64 flex items-center justify-center">
+            <div className={isBarcode ? 'w-full h-40 flex items-center justify-center' : 'w-64 h-64 flex items-center justify-center'}>
               <div className="w-10 h-10 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin" />
             </div>
           )}

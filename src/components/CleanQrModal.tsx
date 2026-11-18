@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   X,
   Download,
   Copy,
   Share2,
   ExternalLink,
-  Folder as FolderIcon,
   Palette,
   Maximize2,
   Check,
@@ -19,13 +18,31 @@ import {
   CreditCard,
   FileText,
   Star,
+  Barcode,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Folder, ParsedQrData, parseQrContent, StoredQrItem, suggestFolderForType } from '../utils/qrLogic';
+import {
+  BARCODE_FORMATS,
+  CodeFormat,
+  Folder,
+  ParsedQrData,
+  StoredQrItem,
+  getBarcodeFormatLabel,
+  is1DBarcodeFormat,
+  parseQrContent,
+  suggestFolderForType,
+  validateBarcodePayload,
+} from '../utils/qrLogic';
 import { generateQrDataUrl, downloadQr, copyQrToClipboard, QrRenderOptions } from '../utils/qrRenderer';
 import { TurnstileModal } from './TurnstileModal';
 import { playTapSound, triggerHaptic } from '../utils/audio';
-import { Language, TRANSLATIONS, getLocalizedFolderName } from '../utils/i18n';
+import {
+  Language,
+  TRANSLATIONS,
+  getLocalizedDetailKey,
+  getLocalizedDetailValue,
+  getLocalizedFolderName,
+} from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
 import { FolderSelect } from './FolderSelect';
 
@@ -33,6 +50,7 @@ interface CleanQrModalProps {
   isOpen: boolean;
   onClose: () => void;
   rawContent: string;
+  codeFormat?: CodeFormat;
   existingItem?: StoredQrItem | null;
   source?: 'camera' | 'screen' | 'file' | 'generated';
   folders: Folder[];
@@ -53,6 +71,7 @@ export function CleanQrModal({
   isOpen,
   onClose,
   rawContent,
+  codeFormat = 'QR_CODE',
   existingItem,
   source = 'camera',
   folders,
@@ -62,7 +81,8 @@ export function CleanQrModal({
 }: CleanQrModalProps) {
   const isDark = theme === 'dark';
   const t = TRANSLATIONS[lang];
-  const [parsed, setParsed] = useState<ParsedQrData>(() => parseQrContent(rawContent || ''));
+  const [activeFormat, setActiveFormat] = useState<CodeFormat>(existingItem?.codeFormat || codeFormat || 'QR_CODE');
+  const [parsed, setParsed] = useState<ParsedQrData>(() => parseQrContent(rawContent || '', activeFormat));
   const [dataUrl, setDataUrl] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState(COLOR_PRESETS[0]);
   const [ecc, setEcc] = useState<'L' | 'M' | 'Q' | 'H'>('M');
@@ -78,10 +98,20 @@ export function CleanQrModal({
   const [isCopiedImage, setIsCopiedImage] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  const isBarcode = is1DBarcodeFormat(activeFormat);
+
+  const compatibleFormats = useMemo<CodeFormat[]>(() => {
+    if (!rawContent) return ['QR_CODE'];
+    const valid1D = BARCODE_FORMATS.filter((fmt) => validateBarcodePayload(rawContent, fmt).valid);
+    return ['QR_CODE', ...valid1D];
+  }, [rawContent]);
+
   useEffect(() => {
     if (!isOpen || !rawContent) return;
 
-    const parsedData = parseQrContent(rawContent);
+    const initialFormat: CodeFormat = existingItem?.codeFormat || codeFormat || 'QR_CODE';
+    setActiveFormat(initialFormat);
+    const parsedData = parseQrContent(rawContent, initialFormat);
     setParsed(parsedData);
 
     if (existingItem) {
@@ -91,16 +121,24 @@ export function CleanQrModal({
       setIsFavorite(existingItem.isFavorite);
       if (existingItem.style) {
         setEcc(existingItem.style.ecc || 'M');
-        const match = COLOR_PRESETS.find(c => c.fg === existingItem.style?.fgColor);
-        if (match) setSelectedColor(match);
+        const match = COLOR_PRESETS.find((c) => c.fg === existingItem.style?.fgColor);
+        setSelectedColor(match || COLOR_PRESETS[0]);
+      } else {
+        setSelectedColor(COLOR_PRESETS[0]);
       }
     } else {
       setTitle(parsedData.displayTitle);
       setFolderId(suggestFolderForType(parsedData.type));
       setNotes('');
       setIsFavorite(false);
+      setSelectedColor(COLOR_PRESETS[0]);
     }
-  }, [isOpen, rawContent, existingItem]);
+  }, [isOpen, rawContent, codeFormat, existingItem]);
+
+  useEffect(() => {
+    if (!rawContent) return;
+    setParsed(parseQrContent(rawContent, activeFormat));
+  }, [rawContent, activeFormat]);
 
   useEffect(() => {
     if (!rawContent) return;
@@ -111,16 +149,17 @@ export function CleanQrModal({
       ecc: ecc,
       margin: 2,
       width: 720,
+      codeFormat: activeFormat,
     };
 
     generateQrDataUrl(rawContent, renderOpts)
       .then(setDataUrl)
-      .catch((err) => console.error('Error generating clean QR preview:', err));
-  }, [rawContent, selectedColor, ecc]);
+      .catch((err) => console.error('Error generating clean code preview:', err));
+  }, [rawContent, selectedColor, ecc, activeFormat]);
 
   if (!isOpen || !rawContent) return null;
 
-  const currentFolder = folders.find(f => f.id === folderId) || folders[0];
+  const currentFolder = folders.find((f) => f.id === folderId) || folders[0];
   const currentFolderName = getLocalizedFolderName(currentFolder.id, currentFolder.name, lang);
 
   const handleCopyText = async () => {
@@ -140,6 +179,7 @@ export function CleanQrModal({
       fgColor: selectedColor.fg,
       bgColor: selectedColor.bg,
       ecc,
+      codeFormat: activeFormat,
     });
     if (success) {
       setIsCopiedImage(true);
@@ -149,10 +189,11 @@ export function CleanQrModal({
 
   const handleDownload = async (format: 'png' | 'svg') => {
     playTapSound();
-    await downloadQr(rawContent, title || 'ecode-qr', format, {
+    await downloadQr(rawContent, title || 'ecode-code', format, {
       fgColor: selectedColor.fg,
       bgColor: selectedColor.bg,
       ecc,
+      codeFormat: activeFormat,
     });
   };
 
@@ -161,7 +202,7 @@ export function CleanQrModal({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: title || 'Ecode QR',
+          title: title || 'Ecode',
           text: rawContent,
         });
       } catch {
@@ -182,6 +223,7 @@ export function CleanQrModal({
         rawContent,
         folderId,
         dataType: parsed.type,
+        codeFormat: activeFormat,
         notes: notes.trim(),
         isFavorite,
         source: existingItem?.source || source,
@@ -211,14 +253,21 @@ export function CleanQrModal({
   };
 
   const getTypeIcon = () => {
+    const green = isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]';
+    const blue = isDark ? 'text-[#a8c7fa]' : 'text-[#1d4ed8]';
+    const purple = isDark ? 'text-[#d0bcff]' : 'text-[#6d28d9]';
+    const amber = isDark ? 'text-[#ffdcc2]' : 'text-[#b45309]';
+    const rose = isDark ? 'text-[#ffb4ab]' : 'text-[#be123c]';
+    if (isBarcode) return <Barcode className={`w-4 h-4 ${green}`} />;
     switch (parsed.type) {
-      case 'url': return <ExternalLink className="w-4 h-4 text-[#d0bcff]" />;
-      case 'wifi': return <Wifi className="w-4 h-4 text-[#a8c7fa]" />;
-      case 'vcard': return <User className="w-4 h-4 text-[#ffb4ab]" />;
-      case 'ticket': return <Ticket className="w-4 h-4 text-[#ffdcc2]" />;
-      case 'loyalty': return <CreditCard className="w-4 h-4 text-[#a8f09b]" />;
-      case 'phone': return <Phone className="w-4 h-4 text-[#a8f09b]" />;
-      case 'email': return <Mail className="w-4 h-4 text-[#a8c7fa]" />;
+      case 'url': return <ExternalLink className={`w-4 h-4 ${purple}`} />;
+      case 'wifi': return <Wifi className={`w-4 h-4 ${blue}`} />;
+      case 'vcard': return <User className={`w-4 h-4 ${rose}`} />;
+      case 'ticket': return <Ticket className={`w-4 h-4 ${amber}`} />;
+      case 'loyalty': return <CreditCard className={`w-4 h-4 ${green}`} />;
+      case 'barcode': return <Barcode className={`w-4 h-4 ${green}`} />;
+      case 'phone': return <Phone className={`w-4 h-4 ${green}`} />;
+      case 'email': return <Mail className={`w-4 h-4 ${blue}`} />;
       default: return <FileText className="w-4 h-4 text-[#8e918f]" />;
     }
   };
@@ -228,7 +277,7 @@ export function CleanQrModal({
       <div 
         className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
         role="dialog"
-        aria-label="Clean QR View"
+        aria-label="Clean Code View"
       >
         <div className={`w-full sm:max-w-lg rounded-t-[32px] sm:rounded-[32px] shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border ${
           isDark ? 'bg-[#1e1f23] text-[#e3e2e6] border-white/[0.06]' : 'bg-white text-[#191c19] border-black/[0.08]'
@@ -244,7 +293,7 @@ export function CleanQrModal({
               <div className={`w-3 h-3 rounded-full ${isDark ? 'bg-[#a8f09b] shadow-[0_0_8px_#a8f09b]' : 'bg-[#2e6c31]'}`} />
               <div>
                 <h3 className={`font-bold text-base leading-tight ${isDark ? 'text-[#e3e2e6]' : 'text-[#191c19]'}`}>
-                  {t.cleanModalTitle}
+                  {isBarcode ? t.cleanBarcodeModalTitle : t.cleanModalTitle}
                 </h3>
                 <p className={`text-xs ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
                   {t.cleanModalSubtitle}
@@ -268,7 +317,7 @@ export function CleanQrModal({
 
           {/* Scrollable Content */}
           <div className="p-6 overflow-y-auto space-y-5">
-            {/* Pristine Reconstructed QR Code Card */}
+            {/* Pristine Reconstructed Code Card */}
             <div className={`flex flex-col items-center rounded-[24px] p-5 relative border ${
               isDark ? 'bg-[#1a1b1f] border-white/[0.04]' : 'bg-[#f7f9f5] border-black/[0.06]'
             }`}>
@@ -285,28 +334,36 @@ export function CleanQrModal({
               </button>
 
               <div 
-                className="p-4 rounded-3xl transition-all shadow-xl my-2 border border-black/10"
+                className={`rounded-3xl transition-all shadow-xl my-2 border border-black/10 flex items-center justify-center ${
+                  isBarcode ? 'w-full max-w-[320px] px-4 py-5 mt-8' : 'p-4'
+                }`}
                 style={{ backgroundColor: selectedColor.bg }}
               >
                 {dataUrl ? (
                   <img
                     src={dataUrl}
-                    alt="Pristine QR"
-                    className="w-52 h-52 sm:w-60 sm:h-60 object-contain image-rendering-pixelated"
+                    alt={isBarcode ? 'Pristine Barcode' : 'Pristine QR'}
+                    className={
+                      isBarcode
+                        ? 'w-full h-36 sm:h-40 object-contain'
+                        : 'w-52 h-52 sm:w-60 sm:h-60 object-contain image-rendering-pixelated'
+                    }
                   />
                 ) : (
-                  <div className="w-52 h-52 flex items-center justify-center">
-                    <div className="w-8 h-8 border-3 border-[#a8f09b] border-t-transparent rounded-full animate-spin" />
+                  <div className={isBarcode ? 'w-full h-36 flex items-center justify-center' : 'w-52 h-52 flex items-center justify-center'}>
+                    <div className={`w-8 h-8 border-3 ${isDark ? 'border-[#a8f09b]' : 'border-[#2e6c31]'} border-t-transparent rounded-full animate-spin`} />
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-2 mt-2 flex-wrap justify-center">
                 <span className="text-[11px] font-bold text-[#a8f09b] bg-[#244927] px-3 py-0.5 rounded-full">
                   {t.vectorOriginalBadge}
                 </span>
                 <span className="text-[11px] text-[#8e918f]">
-                  {t.eccCorrection}: {ecc}
+                  {isBarcode
+                    ? `${t.formatBadgeLabel}: ${getBarcodeFormatLabel(activeFormat)}`
+                    : `${t.eccCorrection}: ${ecc}`}
                 </span>
               </div>
 
@@ -316,14 +373,14 @@ export function CleanQrModal({
                   onClick={() => handleDownload('png')}
                   className="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] active:scale-95 text-[#e3e2e6] text-xs font-semibold transition-colors"
                 >
-                  <Download className="w-4 h-4 mb-1 text-[#a8f09b]" />
+                  <Download className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
                   {t.downloadPng}
                 </button>
                 <button
                   onClick={() => handleDownload('svg')}
                   className="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] active:scale-95 text-[#e3e2e6] text-xs font-semibold transition-colors"
                 >
-                  <Download className="w-4 h-4 mb-1 text-[#a8c7fa]" />
+                  <Download className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8c7fa]' : 'text-[#1d4ed8]'}`} />
                   {t.downloadSvg}
                 </button>
                 <button
@@ -331,9 +388,9 @@ export function CleanQrModal({
                   className="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] active:scale-95 text-[#e3e2e6] text-xs font-semibold transition-colors"
                 >
                   {isCopiedImage ? (
-                    <Check className="w-4 h-4 mb-1 text-[#a8f09b]" />
+                    <Check className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
                   ) : (
-                    <Copy className="w-4 h-4 mb-1 text-[#d0bcff]" />
+                    <Copy className={`w-4 h-4 mb-1 ${isDark ? 'text-[#d0bcff]' : 'text-[#6d28d9]'}`} />
                   )}
                   {isCopiedImage ? t.copiedImage : t.copyImage}
                 </button>
@@ -341,7 +398,7 @@ export function CleanQrModal({
                   onClick={handleShare}
                   className="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] active:scale-95 text-[#e3e2e6] text-xs font-semibold transition-colors"
                 >
-                  <Share2 className="w-4 h-4 mb-1 text-[#ffdcc2]" />
+                  <Share2 className={`w-4 h-4 mb-1 ${isDark ? 'text-[#ffdcc2]' : 'text-[#b45309]'}`} />
                   {t.shareQr}
                 </button>
               </div>
@@ -352,11 +409,13 @@ export function CleanQrModal({
               <button
                 type="button"
                 onClick={() => setShowStyleSettings(!showStyleSettings)}
-                className="w-full px-5 py-3.5 flex items-center justify-between text-xs font-semibold text-[#c4c7c5] hover:text-white transition-colors"
+                className={`w-full px-5 py-3.5 flex items-center justify-between text-xs font-semibold text-[#c4c7c5] transition-colors ${
+                  isDark ? 'hover:text-white' : 'hover:text-[#191c19]'
+                }`}
               >
                 <div className="flex items-center gap-2">
-                  <Palette className="w-4 h-4 text-[#a8f09b]" />
-                  <span>{t.customizeStyle}</span>
+                  <Palette className={`w-4 h-4 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
+                  <span>{isBarcode ? t.customizeBarcodeStyle : t.customizeStyle}</span>
                 </div>
                 <span className="text-[11px] text-[#8e918f]">
                   {showStyleSettings ? '▲' : '▼'}
@@ -394,30 +453,59 @@ export function CleanQrModal({
                     </div>
                   </div>
 
-                  <div>
-                    <label className="text-[11px] font-medium text-[#8e918f] block mb-2">
-                      {t.eccLabel}
-                    </label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {(['L', 'M', 'Q', 'H'] as const).map((lvl) => (
-                        <button
-                          key={lvl}
-                          type="button"
-                          onClick={() => {
-                            playTapSound();
-                            setEcc(lvl);
-                          }}
-                          className={`py-2 rounded-full text-xs font-bold transition-colors ${
-                            ecc === lvl
-                              ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
-                              : 'bg-[#282a2f] text-[#c4c7c5] hover:text-white'
-                          }`}
-                        >
-                          {lvl} {lvl === 'H' ? '(Max)' : ''}
-                        </button>
-                      ))}
+                  {compatibleFormats.length > 1 && (
+                    <div>
+                      <label className="text-[11px] font-medium text-[#8e918f] block mb-2">
+                        {t.barcodeFormatLabel}
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {compatibleFormats.map((fmt) => (
+                          <button
+                            key={fmt}
+                            type="button"
+                            onClick={() => {
+                              playTapSound();
+                              setActiveFormat(fmt);
+                            }}
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
+                              activeFormat === fmt
+                                ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
+                                : `bg-[#282a2f] text-[#c4c7c5] ${isDark ? 'hover:text-white' : 'hover:text-[#191c19]'}`
+                            }`}
+                          >
+                            {getBarcodeFormatLabel(fmt)}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {!isBarcode && (
+                    <div>
+                      <label className="text-[11px] font-medium text-[#8e918f] block mb-2">
+                        {t.eccLabel}
+                      </label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {(['L', 'M', 'Q', 'H'] as const).map((lvl) => (
+                          <button
+                            key={lvl}
+                            type="button"
+                            onClick={() => {
+                              playTapSound();
+                              setEcc(lvl);
+                            }}
+                            className={`py-2 rounded-full text-xs font-bold transition-colors ${
+                              ecc === lvl
+                                ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
+                                : `bg-[#282a2f] text-[#c4c7c5] ${isDark ? 'hover:text-white' : 'hover:text-[#191c19]'}`
+                            }`}
+                          >
+                            {lvl} {lvl === 'H' ? '(Max)' : ''}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -427,11 +515,15 @@ export function CleanQrModal({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-bold text-[#c4c7c5]">
                   {getTypeIcon()}
-                  <span className="capitalize">{parsed.type.toUpperCase()}</span>
+                  <span className="uppercase">
+                    {isBarcode ? getBarcodeFormatLabel(activeFormat) : parsed.type.toUpperCase()}
+                  </span>
                 </div>
                 <button
                   onClick={handleCopyText}
-                  className="text-xs text-[#a8f09b] hover:underline flex items-center gap-1 font-semibold"
+                  className={`text-xs hover:underline flex items-center gap-1 font-semibold ${
+                    isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'
+                  }`}
                 >
                   {isCopiedText ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   {isCopiedText ? t.copiedText : t.copyText}
@@ -442,8 +534,12 @@ export function CleanQrModal({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3 bg-[#282a2f] rounded-2xl text-xs">
                   {Object.entries(parsed.details).map(([k, v]) => (
                     <div key={k} className="flex flex-col">
-                      <span className="text-[10px] text-[#8e918f] uppercase tracking-wider">{k}</span>
-                      <span className="font-semibold text-[#e3e2e6] select-all">{v}</span>
+                      <span className="text-[10px] text-[#8e918f] uppercase tracking-wider">
+                        {getLocalizedDetailKey(k, lang)}
+                      </span>
+                      <span className="font-semibold text-[#e3e2e6] select-all">
+                        {getLocalizedDetailValue(v, lang)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -473,7 +569,7 @@ export function CleanQrModal({
             <div className="bg-[#1a1b1f] rounded-[24px] p-5 space-y-3.5 border border-white/[0.04]">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-[#e3e2e6] flex items-center gap-2">
-                  <BookmarkPlus className="w-4 h-4 text-[#a8f09b]" />
+                  <BookmarkPlus className={`w-4 h-4 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
                   {t.saveToGalleryHeader}
                 </span>
 
@@ -582,6 +678,7 @@ export function CleanQrModal({
         onClose={() => setShowTurnstile(false)}
         title={title || parsed.displayTitle}
         rawContent={rawContent}
+        codeFormat={activeFormat}
         folderName={currentFolderName}
         lang={lang}
       />

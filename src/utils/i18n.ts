@@ -3,7 +3,7 @@ export type Language = 'ru' | 'en';
 export const TRANSLATIONS = {
   ru: {
     // App Header
-    appSlogan: 'Чистые QR-коды • Сканирование экрана • Галерея',
+    appSlogan: 'QR и штрихкоды • Захват экрана • Галерея',
     soundOn: 'Звук включен',
     soundOff: 'Звук выключен',
     aboutApp: 'О приложении Ecode',
@@ -48,18 +48,18 @@ export const TRANSLATIONS = {
     modeCamera: 'Камера',
     modeScreen: 'Захват экрана',
     modeScreenshot: 'Скриншот',
-    scanningCamera: 'Поиск QR в видоискателе...',
+    scanningCamera: 'Поиск QR и штрихкодов...',
     scanningScreen: 'Захват экрана: поиск кода...',
     screenModeTitle: 'Сканирование с экрана',
-    screenModeDesc: 'Считывайте QR-код прямо из активного окна, Telegram, билета или сайта на вашем экране без второго телефона.',
+    screenModeDesc: 'Считывайте QR-коды и штрихкоды прямо из активного окна, Telegram, билета или сайта на вашем экране без второго телефона.',
     startScreenCapture: 'Выбрать экран / окно для сканирования',
     stopScreenCapture: 'Остановить захват экрана',
-    screenModeTip: 'Выберите окно с QR-кодом. Ecode моментально распознает его и откроет в чистом векторном качестве!',
+    screenModeTip: 'Выберите окно с QR или штрихкодом. Ecode моментально распознает его и откроет в чистом векторном качестве!',
     screenshotTitle: 'Скриншот или фото',
-    screenshotDesc: 'Сделайте снимок экрана или сохраните изображение с кодом — Ecode моментально его восстановит.',
+    screenshotDesc: 'Сделайте снимок экрана или выберите изображение с QR-кодом или штрихкодом — Ecode моментально его восстановит.',
     chooseFromGallery: 'Выбрать из галереи',
     pasteScreenshot: 'Вставить скриншот',
-    analyzingImage: 'Анализ скриншота и декодирование QR...',
+    analyzingImage: 'Анализ изображения и декодирование...',
     cameraDisabled: 'Камера отключена или ожидает разрешения.',
     enableCamera: 'Включить камеру',
     cameraNotFound: 'Камера на устройстве не найдена. Попробуйте режим захвата экрана или загрузку скриншота.',
@@ -68,21 +68,26 @@ export const TRANSLATIONS = {
     sampleTicket: '🎫 Авиабилет',
     sampleLoyalty: '💳 Карта скидок',
     sampleWifi: '📶 Wi-Fi сеть',
+    sampleBarcode: '📊 EAN-13 Штрихкод',
 
     // Clean QR Modal
     cleanModalTitle: 'Чистая реконструкция QR',
+    cleanBarcodeModalTitle: 'Чистый штрихкод',
     cleanModalSubtitle: 'Преобразован в идеальный векторный оригинал',
     fullScreenTurnstile: 'Во весь экран',
     vectorOriginalBadge: '✓ 100% Векторный оригинал',
     eccCorrection: 'Коррекция',
+    formatBadgeLabel: 'Формат',
     downloadPng: 'PNG',
     downloadSvg: 'SVG',
     copyImage: 'Картинка',
     copiedImage: 'Готово',
     shareQr: 'Поделиться',
     customizeStyle: 'Настроить палитру и уровень защиты QR',
+    customizeBarcodeStyle: 'Настроить палитру и формат штрихкода',
     paletteLabel: 'Цветовая гамма Material You:',
     eccLabel: 'Уровень избыточности (ECC):',
+    barcodeFormatLabel: 'Формат штрихкода:',
     copyText: 'Копировать текст',
     copiedText: 'Скопировано!',
     openInBrowser: 'Открыть в браузере',
@@ -90,7 +95,7 @@ export const TRANSLATIONS = {
     saveToGalleryHeader: 'Сохранение в Галерею',
     inFavorites: 'В избранном',
     addToFavorites: 'В избранное',
-    qrTitleLabel: 'Название QR-кода:',
+    qrTitleLabel: 'Название кода:',
     qrTitlePlaceholder: 'Например: Билет на самолет или Карта скидок',
     folderLabel: 'Папка для сортировки:',
     noteLabel: 'Заметка (опционально):',
@@ -112,15 +117,15 @@ export const TRANSLATIONS = {
     newFolderChip: 'Новая папка',
     emptyTitle: 'В этой папке пока пусто',
     emptySearchTitle: 'Ничего не найдено',
-    emptyDesc: 'Отсканируйте код с экрана или камеры, либо сгенерируйте чистый QR в Ecode!',
+    emptyDesc: 'Отсканируйте QR или штрихкод с экрана или камеры, либо создайте чистый код в Ecode!',
     emptySearchDesc: 'Попробуйте изменить поисковый запрос или выбрать другую папку.',
-    scanFirstBtn: 'Отсканировать QR',
-    createFirstBtn: 'Создать QR',
+    scanFirstBtn: 'Отсканировать код',
+    createFirstBtn: 'Создать код',
     turnstileBtn: 'Турникет',
     moveToFolderTooltip: 'Переместить в другую папку',
     moveToTitle: 'Переместить в:',
-    deleteTooltip: 'Удалить QR-код',
-    deleteConfirm: 'Удалить этот QR-код из галереи Ecode?',
+    deleteTooltip: 'Удалить код',
+    deleteConfirm: 'Удалить этот код из галереи Ecode?',
     totalSavedFooter: 'Всего в Ecode',
     backupBtn: 'Резервная копия',
     restoreBtn: 'Восстановить',
@@ -135,7 +140,7 @@ export const TRANSLATIONS = {
     sourceGenerated: 'Сгенерирован',
 
     // Generator
-    generatorTitle: 'Параметры содержимого QR',
+    generatorTitle: 'Параметры содержимого',
     liveVectorPreview: 'Живой векторный просмотр',
     pristineVectorQuality: 'Безупречное векторное качество',
     saveToGalleryGen: 'Сохранить в галерею',
@@ -145,8 +150,27 @@ export const TRANSLATIONS = {
     templateWifi: 'Wi-Fi',
     templateTicket: 'Билет',
     templateLoyalty: 'Карта',
+    templateBarcode: 'Штрихкод',
     templateContact: 'Контакт',
     templatePhone: 'Телефон',
+    barcodeFormatSelectLabel: 'Стандарт штрихкода:',
+    barcodeValueLabel: 'Значение штрихкода:',
+    barcodeSampleFill: 'Пример',
+    barcodeErrEmpty: 'Введите данные для генерации штрихкода',
+    barcodeErrEan13Digits: 'Для EAN-13 введите 12 или 13 цифр',
+    barcodeErrEan13Check: 'Неверная контрольная цифра EAN-13 (последняя цифра)',
+    barcodeErrEan8Digits: 'Для EAN-8 введите 7 или 8 цифр',
+    barcodeErrEan8Check: 'Неверная контрольная цифра EAN-8',
+    barcodeErrUpcaDigits: 'Для UPC-A введите 11 или 12 цифр',
+    barcodeErrUpcaCheck: 'Неверная контрольная цифра UPC-A',
+    barcodeErrUpceDigits: 'Для UPC-E введите 6–8 цифр (начиная с 0 или 1)',
+    barcodeErrCode39: 'Code 39 поддерживает 0–9, A–Z, пробел и - . $ / + %',
+    barcodeErrItf: 'ITF-14 требует чётное количество цифр',
+    barcodeErrCodabar: 'Codabar поддерживает цифры 0–9 и - $ : / . +',
+    barcodeErrCode128: 'Code 128 поддерживает латиницу, цифры и ASCII-символы',
+    codeTypeSwitchLabel: 'Тип кода:',
+    codeKindQr: 'QR-код',
+    codeKindBarcode: 'Штрихкод',
     enterTextLabel: 'Введите произвольный текст:',
     enterTextPlaceholder: 'Любой текст, заметка, промокод или инструкция...',
     enterUrlLabel: 'Веб-ссылка (URL):',
@@ -181,11 +205,11 @@ export const TRANSLATIONS = {
     // About Modal
     aboutTitle: 'Ecode',
     feature1Title: 'Захват экрана и камеры',
-    feature1Desc: 'Считывайте QR-коды прямо с экрана в любых приложениях без второго устройства.',
+    feature1Desc: 'Считывайте QR-коды и штрихкоды прямо с экрана в любых приложениях без второго устройства.',
     feature2Title: 'Векторная реконструкция',
-    feature2Desc: 'Считанный код преобразуется в безупречный векторный оригинал для турникетов и касс.',
+    feature2Desc: 'Считанный QR или штрихкод преобразуется в безупречный векторный оригинал для турникетов и касс.',
     feature3Title: 'Галерея и папки',
-    feature3Desc: 'Раскладывайте билеты, карты лояльности, Wi-Fi и ссылки по категориям.',
+    feature3Desc: 'Раскладывайте билеты, карты лояльности, Wi-Fi и штрихкоды по категориям.',
     aboutUnderstood: 'Понятно',
 
     // Default Folder Translations
@@ -198,7 +222,7 @@ export const TRANSLATIONS = {
   },
   en: {
     // App Header
-    appSlogan: 'Clean QR Codes • Screen Capture • Gallery',
+    appSlogan: 'QR & Barcodes • Screen Capture • Gallery',
     soundOn: 'Sound enabled',
     soundOff: 'Sound muted',
     aboutApp: 'About Ecode',
@@ -243,18 +267,18 @@ export const TRANSLATIONS = {
     modeCamera: 'Camera',
     modeScreen: 'Screen Capture',
     modeScreenshot: 'Screenshot',
-    scanningCamera: 'Scanning viewfinder for QR...',
-    scanningScreen: 'Screen capture: looking for QR...',
+    scanningCamera: 'Scanning for QR & barcodes...',
+    scanningScreen: 'Screen capture: scanning for codes...',
     screenModeTitle: 'Scan from Screen',
-    screenModeDesc: 'Read QR codes directly from any active window, Telegram, PDF ticket, or website on your screen without a second device.',
+    screenModeDesc: 'Read QR codes and barcodes directly from any active window, Telegram, PDF ticket, or website on your screen without a second device.',
     startScreenCapture: 'Select Screen / Window to Scan',
     stopScreenCapture: 'Stop Screen Capture',
-    screenModeTip: 'Select any window with a QR code. Ecode instantly recognizes it and displays it in pristine vector quality!',
+    screenModeTip: 'Select any window with a QR or barcode. Ecode instantly recognizes it and displays it in pristine vector quality!',
     screenshotTitle: 'Screenshot or Photo',
-    screenshotDesc: 'Take a screenshot or select a photo with a QR code — Ecode will instantly reconstruct it.',
+    screenshotDesc: 'Take a screenshot or select a photo with a QR code or barcode — Ecode will instantly reconstruct it.',
     chooseFromGallery: 'Choose from Files',
     pasteScreenshot: 'Paste Screenshot',
-    analyzingImage: 'Analyzing image and decoding QR...',
+    analyzingImage: 'Analyzing image and decoding...',
     cameraDisabled: 'Camera is disabled or awaiting permission.',
     enableCamera: 'Enable Camera',
     cameraNotFound: 'Camera was not detected on this device. Try Screen Capture or upload a screenshot.',
@@ -263,21 +287,26 @@ export const TRANSLATIONS = {
     sampleTicket: '🎫 Flight Ticket',
     sampleLoyalty: '💳 Discount Card',
     sampleWifi: '📶 Wi-Fi Network',
+    sampleBarcode: '📊 EAN-13 Barcode',
 
     // Clean QR Modal
     cleanModalTitle: 'Pristine QR Reconstruction',
+    cleanBarcodeModalTitle: 'Pristine Barcode',
     cleanModalSubtitle: 'Converted to original pristine vector quality',
     fullScreenTurnstile: 'Full Screen',
     vectorOriginalBadge: '✓ 100% Vector Original',
     eccCorrection: 'ECC',
+    formatBadgeLabel: 'Format',
     downloadPng: 'PNG',
     downloadSvg: 'SVG',
     copyImage: 'Image',
     copiedImage: 'Copied',
     shareQr: 'Share',
     customizeStyle: 'Customize Material You Palette & ECC',
+    customizeBarcodeStyle: 'Customize Palette & Barcode Format',
     paletteLabel: 'Material You Color Scheme:',
     eccLabel: 'Error Correction Level (ECC):',
+    barcodeFormatLabel: 'Barcode Standard:',
     copyText: 'Copy Text',
     copiedText: 'Copied!',
     openInBrowser: 'Open in Browser',
@@ -285,7 +314,7 @@ export const TRANSLATIONS = {
     saveToGalleryHeader: 'Save to Gallery',
     inFavorites: 'Favorited',
     addToFavorites: 'Favorite',
-    qrTitleLabel: 'QR Code Name:',
+    qrTitleLabel: 'Code Name:',
     qrTitlePlaceholder: 'e.g. Flight Boarding Pass or Store Card',
     folderLabel: 'Folder Category:',
     noteLabel: 'Note (optional):',
@@ -307,15 +336,15 @@ export const TRANSLATIONS = {
     newFolderChip: 'New Folder',
     emptyTitle: 'This folder is empty',
     emptySearchTitle: 'No codes found',
-    emptyDesc: 'Scan a QR code from screen or camera, or generate a clean QR in Ecode!',
+    emptyDesc: 'Scan a QR or barcode from screen or camera, or generate a clean code in Ecode!',
     emptySearchDesc: 'Try adjusting your search query or pick a different folder.',
-    scanFirstBtn: 'Scan QR Code',
-    createFirstBtn: 'Create QR Code',
+    scanFirstBtn: 'Scan Code',
+    createFirstBtn: 'Create Code',
     turnstileBtn: 'Turnstile',
     moveToFolderTooltip: 'Move to another folder',
     moveToTitle: 'Move to:',
-    deleteTooltip: 'Delete QR Code',
-    deleteConfirm: 'Delete this QR code from Ecode gallery?',
+    deleteTooltip: 'Delete Code',
+    deleteConfirm: 'Delete this code from Ecode gallery?',
     totalSavedFooter: 'Total in Ecode',
     backupBtn: 'Backup',
     restoreBtn: 'Restore',
@@ -330,7 +359,7 @@ export const TRANSLATIONS = {
     sourceGenerated: 'Generated',
 
     // Generator
-    generatorTitle: 'QR Code Content Parameters',
+    generatorTitle: 'Code Content Parameters',
     liveVectorPreview: 'Live Vector Preview',
     pristineVectorQuality: 'Flawless Vector Quality',
     saveToGalleryGen: 'Save to Gallery',
@@ -340,8 +369,27 @@ export const TRANSLATIONS = {
     templateWifi: 'Wi-Fi',
     templateTicket: 'Ticket',
     templateLoyalty: 'Card',
+    templateBarcode: 'Barcode',
     templateContact: 'Contact',
     templatePhone: 'Phone',
+    barcodeFormatSelectLabel: 'Barcode Standard:',
+    barcodeValueLabel: 'Barcode Value:',
+    barcodeSampleFill: 'Sample',
+    barcodeErrEmpty: 'Enter data to generate barcode',
+    barcodeErrEan13Digits: 'EAN-13 requires 12 or 13 digits',
+    barcodeErrEan13Check: 'Invalid EAN-13 check digit (last digit)',
+    barcodeErrEan8Digits: 'EAN-8 requires 7 or 8 digits',
+    barcodeErrEan8Check: 'Invalid EAN-8 check digit',
+    barcodeErrUpcaDigits: 'UPC-A requires 11 or 12 digits',
+    barcodeErrUpcaCheck: 'Invalid UPC-A check digit',
+    barcodeErrUpceDigits: 'UPC-E requires 6–8 digits (starting with 0 or 1)',
+    barcodeErrCode39: 'Code 39 allows 0–9, A–Z, space, and - . $ / + %',
+    barcodeErrItf: 'ITF-14 requires an even number of digits',
+    barcodeErrCodabar: 'Codabar allows digits 0–9 and - $ : / . +',
+    barcodeErrCode128: 'Code 128 supports ASCII text and digits',
+    codeTypeSwitchLabel: 'Code Type:',
+    codeKindQr: 'QR Code',
+    codeKindBarcode: 'Barcode',
     enterTextLabel: 'Enter custom text:',
     enterTextPlaceholder: 'Any text, note, promo code, or instruction...',
     enterUrlLabel: 'Website URL:',
@@ -376,11 +424,11 @@ export const TRANSLATIONS = {
     // About Modal
     aboutTitle: 'Ecode',
     feature1Title: 'Screen & Camera Capture',
-    feature1Desc: 'Read QR codes directly from your active screen in any app or via camera.',
+    feature1Desc: 'Read QR codes and barcodes directly from your active screen in any app or via camera.',
     feature2Title: 'Vector Reconstruction',
-    feature2Desc: 'Converts scanned QR into a flawless vector original for turnstiles and scanners.',
+    feature2Desc: 'Converts scanned QR or barcode into a flawless vector original for turnstiles and checkout scanners.',
     feature3Title: 'Gallery & Folders',
-    feature3Desc: 'Organize tickets, loyalty cards, Wi-Fi credentials and links with ease.',
+    feature3Desc: 'Organize tickets, loyalty cards, Wi-Fi credentials and barcodes with ease.',
     aboutUnderstood: 'Got It',
 
     // Default Folder Translations
@@ -421,3 +469,32 @@ export function getLocalizedFolderName(folderId: string, defaultName: string, la
     default: return defaultName;
   }
 }
+
+export function getLocalizedDetailKey(key: string, lang: Language): string {
+  if (lang === 'ru') return key;
+  switch (key) {
+    case 'Формат': return 'Format';
+    case 'Значение': return 'Value';
+    case 'Сеть (SSID)': return 'Network (SSID)';
+    case 'Пароль': return 'Password';
+    case 'Шифрование': return 'Security';
+    case 'Скрытая сеть': return 'Hidden Network';
+    case 'Имя': return 'Name';
+    case 'Телефон': return 'Phone';
+    case 'Организация': return 'Organization';
+    default: return key;
+  }
+}
+
+export function getLocalizedDetailValue(value: string, lang: Language): string {
+  if (lang === 'ru') return value;
+  switch (value) {
+    case '(Без пароля)': return '(No password)';
+    case 'Неизвестная сеть': return 'Unknown network';
+    case 'Да': return 'Yes';
+    case 'Нет': return 'No';
+    case 'Контакт': return 'Contact';
+    default: return value;
+  }
+}
+

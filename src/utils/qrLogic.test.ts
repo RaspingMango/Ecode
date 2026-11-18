@@ -1,18 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import JsBarcode from 'jsbarcode';
 import {
   parseQrContent,
   suggestFolderForType,
   filterAndSortQrItems,
   buildWifiQrString,
   buildVCardQrString,
+  validateBarcodePayload,
+  computeGs1CheckDigit,
+  is1DBarcodeFormat,
+  getBarcodeFormatLabel,
+  getJsBarcodeFormat,
+  getSampleBarcodeValue,
+  BARCODE_FORMATS,
   StoredQrItem,
 } from './qrLogic';
+import { scanBarcodeWithZxing, mapZxingFormatToCodeFormat, ZXing } from './qrScanner';
 
 test('parseQrContent parses Wi-Fi payload correctly', () => {
   const raw = 'WIFI:S:Home_Network_5G;T:WPA;P:SuperSecret123;H:false;;';
   const parsed = parseQrContent(raw);
   assert.equal(parsed.type, 'wifi');
+  assert.equal(parsed.codeFormat, 'QR_CODE');
   assert.equal(parsed.displayTitle, 'Wi-Fi: Home_Network_5G');
   assert.equal(parsed.details?.['Сеть (SSID)'], 'Home_Network_5G');
   assert.equal(parsed.details?.['Пароль'], 'SuperSecret123');
@@ -37,6 +47,20 @@ test('parseQrContent parses vCard contacts correctly', () => {
   assert.equal(suggestFolderForType(parsed.type), 'contacts');
 });
 
+test('parseQrContent classifies 1D barcodes cleanly', () => {
+  const retail = parseQrContent('4607004650932', 'EAN_13');
+  assert.equal(retail.type, 'loyalty');
+  assert.equal(retail.codeFormat, 'EAN_13');
+  assert.equal(retail.displayTitle, 'EAN-13: 4607004650932');
+  assert.equal(suggestFolderForType(retail.type), 'loyalty');
+
+  const code128 = parseQrContent('ECODE-8849201', 'CODE_128');
+  assert.equal(code128.type, 'barcode');
+  assert.equal(code128.codeFormat, 'CODE_128');
+  assert.equal(code128.displayTitle, 'Code 128: ECODE-8849201');
+  assert.equal(suggestFolderForType(code128.type), 'loyalty');
+});
+
 test('buildWifiQrString properly escapes special characters', () => {
   const str = buildWifiQrString('My;Wifi:SSID', 'pass123;word', 'WPA', false);
   assert.match(str, /WIFI:S:My\\;Wifi\\:SSID;T:WPA;P:pass123\\;word;/);
@@ -49,6 +73,96 @@ test('buildVCardQrString produces valid vCard 3.0 lines', () => {
   assert.match(card, /TEL;TYPE=CELL:\+79001112233/);
   assert.match(card, /ORG:TechCorp/);
   assert.match(card, /END:VCARD/);
+});
+
+test('GS1 check digit calculation and EAN/UPC validation', () => {
+  assert.equal(computeGs1CheckDigit('460700465093'), 2);
+  assert.equal(computeGs1CheckDigit('4601234'), 0);
+  assert.equal(computeGs1CheckDigit('03600029145'), 2);
+
+  // Valid 13-digit EAN-13 and 12-digit auto-completion
+  assert.deepEqual(validateBarcodePayload('4607004650932', 'EAN_13'), {
+    valid: true,
+    normalizedValue: '4607004650932',
+  });
+  assert.deepEqual(validateBarcodePayload('460700465093', 'EAN_13'), {
+    valid: true,
+    normalizedValue: '4607004650932',
+  });
+
+  // Invalid EAN-13 check digit and wrong length
+  assert.equal(validateBarcodePayload('4607004650939', 'EAN_13').errorKey, 'ean13CheckDigit');
+  assert.equal(validateBarcodePayload('12345', 'EAN_13').errorKey, 'ean13Digits');
+
+  // EAN-8 & UPC-A
+  assert.equal(validateBarcodePayload('46012340', 'EAN_8').valid, true);
+  assert.equal(validateBarcodePayload('036000291452', 'UPC_A').valid, true);
+
+  // Code 128, Code 39, ITF, Codabar
+  assert.equal(validateBarcodePayload('ECODE-8849201', 'CODE_128').valid, true);
+  assert.equal(validateBarcodePayload('Кириллица', 'CODE_128').errorKey, 'code128Ascii');
+  assert.equal(validateBarcodePayload('ecode-2026', 'CODE_39').normalizedValue, 'ECODE-2026');
+  assert.equal(validateBarcodePayload('12345', 'ITF').errorKey, 'itfDigits');
+  assert.equal(validateBarcodePayload('123456', 'ITF').valid, true);
+  assert.equal(validateBarcodePayload('A40156B', 'CODABAR').valid, true);
+});
+
+test('barcode format helpers and all sample values validate & encode with JsBarcode cleanly', () => {
+  assert.equal(is1DBarcodeFormat('QR_CODE'), false);
+  assert.equal(is1DBarcodeFormat('EAN_13'), true);
+  assert.equal(getBarcodeFormatLabel('EAN_13'), 'EAN-13');
+  assert.equal(getJsBarcodeFormat('UPC_A'), 'UPC');
+  assert.equal(mapZxingFormatToCodeFormat(ZXing.BarcodeFormat.EAN_13), 'EAN_13');
+
+  for (const fmt of BARCODE_FORMATS) {
+    const sample = getSampleBarcodeValue(fmt);
+    assert.equal(validateBarcodePayload(sample, fmt).valid, true, `Sample for ${fmt} should be valid`);
+    const out: { encodings?: Array<{ data: string }> } = {};
+    JsBarcode(out as any, sample, { format: getJsBarcodeFormat(fmt) });
+    assert.ok(out.encodings && out.encodings.length > 0 && out.encodings[0].data.length > 0, `JsBarcode should encode ${fmt}`);
+  }
+});
+
+test('scanBarcodeWithZxing decodes generated EAN-13 and CODE_128 barcode pixels round-trip', () => {
+  const cases: Array<{ value: string; jsFmt: string; expected: string }> = [
+    { value: '4607004650932', jsFmt: 'EAN13', expected: 'EAN_13' },
+    { value: 'ECODE-8849201', jsFmt: 'CODE128', expected: 'CODE_128' },
+  ];
+
+  for (const c of cases) {
+    const container: { encodings?: Array<{ data: string }> } = {};
+    JsBarcode(container as any, c.value, { format: c.jsFmt });
+    const bits = (container.encodings || []).map((e) => e.data).join('');
+    assert.ok(bits && bits.length > 0, `JsBarcode should emit binary bar data for ${c.jsFmt}`);
+
+    const scaleX = 3;
+    const margin = 24;
+    const width = bits.length * scaleX + margin * 2;
+    const height = 80;
+    const rgba = new Uint8ClampedArray(width * height * 4);
+    rgba.fill(255); // White background
+
+    for (let y = 12; y < height - 12; y++) {
+      for (let i = 0; i < bits.length; i++) {
+        if (bits[i] === '1') {
+          for (let sx = 0; sx < scaleX; sx++) {
+            const x = margin + i * scaleX + sx;
+            const idx = (y * width + x) * 4;
+            rgba[idx] = 0;
+            rgba[idx + 1] = 0;
+            rgba[idx + 2] = 0;
+            rgba[idx + 3] = 255;
+          }
+        }
+      }
+    }
+
+    const fakeImageData = { data: rgba, width, height } as ImageData;
+    const decoded = scanBarcodeWithZxing(fakeImageData);
+    assert.ok(decoded, `ZXing should decode ${c.jsFmt} barcode`);
+    assert.equal(decoded.data, c.value);
+    assert.equal(decoded.format, c.expected);
+  }
 });
 
 test('filterAndSortQrItems filters by folder, query, and sorts correctly', () => {

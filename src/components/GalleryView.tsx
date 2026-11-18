@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Search,
   SlidersHorizontal,
@@ -20,16 +20,24 @@ import {
   List as ListIcon,
   X,
 } from 'lucide-react';
-import { Folder, StoredQrItem, filterAndSortQrItems } from '../utils/qrLogic';
+import {
+  Folder,
+  StoredQrItem,
+  filterAndSortQrItems,
+  getBarcodeFormatLabel,
+  is1DBarcodeFormat,
+} from '../utils/qrLogic';
 import { generateQrDataUrl } from '../utils/qrRenderer';
 import { playTapSound, triggerHaptic } from '../utils/audio';
 import { Language, TRANSLATIONS, getLocalizedFolderName } from '../utils/i18n';
+import { ThemeMode } from '../utils/theme';
 import { getFolderIcon } from './FolderSelect';
 
 interface GalleryViewProps {
   items: StoredQrItem[];
   folders: Folder[];
   lang?: Language;
+  theme?: ThemeMode;
   onSelectItem: (item: StoredQrItem) => void;
   onOpenTurnstile: (item: StoredQrItem) => void;
   onToggleFavorite: (id: string) => void;
@@ -46,6 +54,7 @@ export function GalleryView({
   items,
   folders,
   lang = 'ru',
+  theme = 'dark',
   onSelectItem,
   onOpenTurnstile,
   onToggleFavorite,
@@ -57,6 +66,7 @@ export function GalleryView({
   onNavigateToScan,
   onNavigateToCreate,
 }: GalleryViewProps) {
+  const isDark = theme === 'dark';
   const t = TRANSLATIONS[lang];
   const [selectedFolderId, setSelectedFolderId] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -64,21 +74,30 @@ export function GalleryView({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [movingItemId, setMovingItemId] = useState<string | null>(null);
 
-  // Cached thumbnails for items
+  // Cached thumbnails keyed by render signature so edits/format changes refresh automatically
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
+  const generatedKeysRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     items.forEach((item) => {
-      if (!thumbnails[item.id]) {
+      const format = item.codeFormat || 'QR_CODE';
+      const fgColor = item.style?.fgColor || '#000000';
+      const bgColor = item.style?.bgColor || '#ffffff';
+      const cacheKey = `${item.id}|${item.rawContent}|${format}|${fgColor}|${bgColor}`;
+      if (!generatedKeysRef.current.has(cacheKey)) {
+        generatedKeysRef.current.add(cacheKey);
         generateQrDataUrl(item.rawContent, {
-          fgColor: item.style?.fgColor || '#000000',
-          bgColor: item.style?.bgColor || '#ffffff',
+          fgColor,
+          bgColor,
           ecc: 'M',
           margin: 1,
-          width: 140,
-        }).then((url) => {
-          setThumbnails((prev) => ({ ...prev, [item.id]: url }));
-        }).catch(() => {});
+          width: 160,
+          codeFormat: format,
+        })
+          .then((url) => {
+            setThumbnails((prev) => ({ ...prev, [cacheKey]: url }));
+          })
+          .catch(() => {});
       }
     });
   }, [items]);
@@ -272,7 +291,11 @@ export function GalleryView({
             playTapSound();
             onOpenCreateFolder();
           }}
-          className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-[#1e1f23] border border-dashed border-[#a8f09b]/50 text-[#a8f09b] hover:bg-[#a8f09b]/10 transition-colors flex items-center gap-1.5 shrink-0"
+          className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-[#1e1f23] border border-dashed transition-colors flex items-center gap-1.5 shrink-0 ${
+            isDark
+              ? 'border-[#a8f09b]/50 text-[#a8f09b] hover:bg-[#a8f09b]/10'
+              : 'border-[#2e6c31]/50 text-[#2e6c31] hover:bg-[#2e6c31]/10'
+          }`}
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{t.newFolderChip}</span>
@@ -363,7 +386,7 @@ export function GalleryView({
                   </button>
                 </div>
 
-                {/* Center Content: Crisp QR Thumbnail + Info */}
+                {/* Center Content: Crisp Code Thumbnail + Info */}
                 <div
                   onClick={() => {
                     playTapSound();
@@ -371,20 +394,40 @@ export function GalleryView({
                   }}
                   className="flex items-start gap-3.5 cursor-pointer select-none"
                 >
-                  <div className="w-18 h-18 sm:w-20 sm:h-20 shrink-0 bg-white p-1 rounded-2xl shadow-sm flex items-center justify-center overflow-hidden border border-black/10">
-                    {thumbnails[item.id] ? (
-                      <img
-                        src={thumbnails[item.id]}
-                        alt={item.title}
-                        className="w-full h-full object-contain image-rendering-pixelated"
-                      />
-                    ) : (
-                      <div className="w-4 h-4 border-2 border-slate-400 border-t-slate-800 rounded-full animate-spin" />
-                    )}
-                  </div>
+                  {(() => {
+                    const isBarcode = is1DBarcodeFormat(item.codeFormat);
+                    const format = item.codeFormat || 'QR_CODE';
+                    const fgColor = item.style?.fgColor || '#000000';
+                    const bgColor = item.style?.bgColor || '#ffffff';
+                    const cacheKey = `${item.id}|${item.rawContent}|${format}|${fgColor}|${bgColor}`;
+                    const thumbUrl = thumbnails[cacheKey];
+
+                    return (
+                      <div
+                        className={`shrink-0 p-1.5 rounded-2xl shadow-sm flex items-center justify-center overflow-hidden border border-black/10 ${
+                          isBarcode
+                            ? 'w-24 h-16 sm:w-28 sm:h-18'
+                            : 'w-18 h-18 sm:w-20 sm:h-20'
+                        }`}
+                        style={{ backgroundColor: bgColor }}
+                      >
+                        {thumbUrl ? (
+                          <img
+                            src={thumbUrl}
+                            alt={item.title}
+                            className={`w-full h-full object-contain ${isBarcode ? '' : 'image-rendering-pixelated'}`}
+                          />
+                        ) : (
+                          <div className="w-4 h-4 border-2 border-slate-400 border-t-slate-800 rounded-full animate-spin" />
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   <div className="flex-1 min-w-0">
-                    <h5 className="font-bold text-sm text-[#e3e2e6] group-hover:text-[#a8f09b] transition-colors leading-tight line-clamp-2">
+                    <h5 className={`font-bold text-sm text-[#e3e2e6] transition-colors leading-tight line-clamp-2 ${
+                      isDark ? 'group-hover:text-[#a8f09b]' : 'group-hover:text-[#2e6c31]'
+                    }`}>
                       {item.title}
                     </h5>
                     {item.notes && (
@@ -392,7 +435,12 @@ export function GalleryView({
                         {item.notes}
                       </p>
                     )}
-                    <div className="flex items-center gap-2 mt-2 text-[10px] text-[#8e918f]">
+                    <div className="flex items-center flex-wrap gap-1.5 mt-2 text-[10px] text-[#8e918f]">
+                      {is1DBarcodeFormat(item.codeFormat) && (
+                        <span className="px-2 py-0.5 rounded-md bg-[#244927] text-[#a8f09b] font-bold">
+                          {getBarcodeFormatLabel(item.codeFormat)}
+                        </span>
+                      )}
                       <span className="px-2 py-0.5 rounded-md bg-[#282a2f]">{getSourceBadge(item.source)}</span>
                       <span>{dateStr}</span>
                     </div>
@@ -493,12 +541,12 @@ export function GalleryView({
             }}
             className="px-3.5 py-1.5 rounded-full bg-[#1e1f23] hover:bg-[#282a2f] text-[#c4c7c5] hover:text-[#e3e2e6] text-xs font-semibold flex items-center gap-1.5 transition-colors border border-white/[0.04]"
           >
-            <Download className="w-3.5 h-3.5 text-[#a8f09b]" />
+            <Download className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
             <span>{t.backupBtn}</span>
           </button>
 
           <label className="px-3.5 py-1.5 rounded-full bg-[#1e1f23] hover:bg-[#282a2f] text-[#c4c7c5] hover:text-[#e3e2e6] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-white/[0.04]">
-            <Upload className="w-3.5 h-3.5 text-[#a8c7fa]" />
+            <Upload className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8c7fa]' : 'text-[#1d4ed8]'}`} />
             <span>{t.restoreBtn}</span>
             <input
               type="file"
