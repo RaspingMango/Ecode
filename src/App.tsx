@@ -67,6 +67,9 @@ export default function App() {
   // About modal
   const [aboutOpen, setAboutOpen] = useState(false);
 
+  // Non-blocking status toast (replaces window.alert)
+  const [statusToast, setStatusToast] = useState<string | null>(null);
+
   // Save items and folders on change
   useEffect(() => {
     saveStoredQrItems(items);
@@ -182,7 +185,8 @@ export default function App() {
 
   const handleImportBackup = (importedItems: StoredQrItem[]) => {
     setItems(importedItems);
-    alert(`${t.backupRestored} ${importedItems.length}`);
+    setStatusToast(`${t.backupRestored} ${importedItems.length}`);
+    setTimeout(() => setStatusToast(null), 3000);
   };
 
   return (
@@ -533,6 +537,12 @@ export default function App() {
               {t.aboutUnderstood}
             </button>
           </div>
+        </div>
+      )}
+      {/* Non-blocking status toast */}
+      {statusToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full bg-[#244927] text-[#c4fbb8] text-xs font-bold shadow-xl border border-[#a8f09b]/30 animate-in fade-in">
+          {statusToast}
         </div>
       )}
     </div>

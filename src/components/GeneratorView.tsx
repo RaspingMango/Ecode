@@ -13,7 +13,6 @@ import {
   Maximize2,
   Check,
   CheckCircle2,
-  Palette,
   Sparkles,
   Barcode,
   AlertCircle,
@@ -41,6 +40,7 @@ import { playTapSound, triggerHaptic } from '../utils/audio';
 import { Language, TRANSLATIONS, getLocalizedFolderName } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
 import { FolderSelect } from './FolderSelect';
+import { CodeColorPicker } from './CodeColorPicker';
 
 interface GeneratorViewProps {
   folders: Folder[];
@@ -51,14 +51,6 @@ interface GeneratorViewProps {
 }
 
 type GeneratorTemplate = 'text' | 'url' | 'wifi' | 'ticket' | 'loyalty' | 'barcode' | 'vcard' | 'phone';
-
-const COLOR_PRESETS = [
-  { name: 'Классический ч/б', nameEn: 'Classic B/W', fg: '#000000', bg: '#ffffff' },
-  { name: 'Мятный M3', nameEn: 'Mint M3', fg: '#003a0f', bg: '#e8f5e9' },
-  { name: 'Сапфир M3', nameEn: 'Sapphire M3', fg: '#00325b', bg: '#e3f2fd' },
-  { name: 'Аметист M3', nameEn: 'Amethyst M3', fg: '#381e72', bg: '#f3e5f5' },
-  { name: 'AMOLED Тёмный', nameEn: 'AMOLED Dark', fg: '#a8f09b', bg: '#121316' },
-];
 
 export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGallery, onOpenGallery }: GeneratorViewProps) {
   const isDark = theme === 'dark';
@@ -102,7 +94,8 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [selectedFolderId, setSelectedFolderId] = useState('docs');
   const [notes, setNotes] = useState('');
-  const [selectedColor, setSelectedColor] = useState(COLOR_PRESETS[0]);
+  const [fgColor, setFgColor] = useState('#000000');
+  const [bgColor, setBgColor] = useState('#ffffff');
   const [ecc, setEcc] = useState<'L' | 'M' | 'Q' | 'H'>('M');
 
   // Status & Previews
@@ -256,8 +249,8 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
     }
 
     generateQrDataUrl(rawQrString, {
-      fgColor: selectedColor.fg,
-      bgColor: selectedColor.bg,
+      fgColor,
+      bgColor,
       ecc,
       margin: 2,
       width: 500,
@@ -265,7 +258,7 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
     })
       .then(setPreviewDataUrl)
       .catch(() => setPreviewDataUrl(''));
-  }, [rawQrString, selectedColor, ecc, activeCodeFormat, isBarcodeMode, barcodeValidation.valid]);
+  }, [rawQrString, fgColor, bgColor, ecc, activeCodeFormat, isBarcodeMode, barcodeValidation.valid]);
 
   const handleSelectBarcodeFormat = (fmt: CodeFormat) => {
     playTapSound();
@@ -305,8 +298,8 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
       isFavorite: false,
       source: 'generated',
       style: {
-        fgColor: selectedColor.fg,
-        bgColor: selectedColor.bg,
+        fgColor,
+        bgColor,
         ecc,
       },
     });
@@ -331,8 +324,8 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
     if (!canGenerate) return;
     playTapSound();
     await downloadQr(rawQrString, customTitle || 'ecode', format, {
-      fgColor: selectedColor.fg,
-      bgColor: selectedColor.bg,
+      fgColor,
+      bgColor,
       ecc,
       codeFormat: activeCodeFormat,
     });
@@ -342,8 +335,8 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
     if (!canGenerate) return;
     playTapSound();
     const success = await copyQrToClipboard(rawQrString, {
-      fgColor: selectedColor.fg,
-      bgColor: selectedColor.bg,
+      fgColor,
+      bgColor,
       ecc,
       codeFormat: activeCodeFormat,
     });
@@ -773,7 +766,7 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
               className={`rounded-3xl shadow-xl transition-all my-2 border border-black/10 flex items-center justify-center ${
                 isBarcodeMode ? 'w-full px-4 py-5' : 'p-4'
               }`}
-              style={{ backgroundColor: selectedColor.bg }}
+              style={{ backgroundColor: bgColor }}
             >
               {isBarcodeMode && barcodeErrorText ? (
                 <div className="w-full h-36 flex flex-col items-center justify-center text-center px-3 gap-2">
@@ -803,41 +796,19 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
             </span>
           </div>
 
-          {/* Material You Palette Presets */}
-          <div className="bg-[#1a1b1f] rounded-[24px] p-3.5 space-y-2 border border-white/[0.04]">
-            <div className="flex items-center justify-between text-xs font-semibold text-[#c4c7c5]">
-              <div className="flex items-center gap-1.5">
-                <Palette className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
-                <span>{t.styleLabel}</span>
-              </div>
-              <span className="text-[11px] text-[#8e918f]">
-                {lang === 'ru' ? selectedColor.name : selectedColor.nameEn}
-              </span>
-            </div>
-
-            <div className="flex gap-2">
-              {COLOR_PRESETS.map((p) => (
-                <button
-                  key={p.name}
-                  type="button"
-                  onClick={() => {
-                    playTapSound();
-                    setSelectedColor(p);
-                  }}
-                  className={`flex-1 py-1.5 rounded-full border flex items-center justify-center transition-all ${
-                    selectedColor.name === p.name
-                      ? 'border-[#a8f09b] bg-[#394738]'
-                      : 'border-white/[0.06] bg-[#282a2f]'
-                  }`}
-                  title={lang === 'ru' ? p.name : p.nameEn}
-                >
-                  <span
-                    className="w-4 h-4 rounded-full border border-black/20"
-                    style={{ backgroundColor: p.fg }}
-                  />
-                </button>
-              ))}
-            </div>
+          {/* Material You Palette & Custom RGB Picker */}
+          <div className="bg-[#1a1b1f] rounded-[24px] p-3.5 border border-white/[0.04]">
+            <CodeColorPicker
+              fgColor={fgColor}
+              bgColor={bgColor}
+              onChange={({ fgColor: nextFg, bgColor: nextBg }) => {
+                setFgColor(nextFg);
+                setBgColor(nextBg);
+              }}
+              lang={lang}
+              theme={theme}
+              compactPresets
+            />
           </div>
 
           {/* Export & Save Action Buttons */}

@@ -17,6 +17,8 @@ import {
   StoredQrItem,
 } from './qrLogic';
 import { scanBarcodeWithZxing, mapZxingFormatToCodeFormat, ZXing } from './qrScanner';
+import { hexToRgb, rgbToHex, normalizeHexColor, getColorContrastRatio } from './color';
+import { getLocalizedDetailKey, getLocalizedDetailValue } from './i18n';
 
 test('parseQrContent parses Wi-Fi payload correctly', () => {
   const raw = 'WIFI:S:Home_Network_5G;T:WPA;P:SuperSecret123;H:false;;';
@@ -213,3 +215,25 @@ test('filterAndSortQrItems filters by folder, query, and sorts correctly', () =>
   const sortedFavs = filterAndSortQrItems(items, 'all', '', 'favoritesFirst');
   assert.equal(sortedFavs[0].id, '2'); // Favorite item is first
 });
+
+test('RGB/HEX color conversion and contrast ratio helpers work accurately', () => {
+  assert.deepEqual(hexToRgb('#ff8000'), { r: 255, g: 128, b: 0 });
+  assert.equal(rgbToHex(18, 52, 86), '#123456');
+  assert.equal(rgbToHex(300, -10, 127.6), '#ff0080');
+  assert.equal(normalizeHexColor('abc', '#000000'), '#aabbcc');
+  assert.equal(normalizeHexColor('invalid', '#123456'), '#123456');
+
+  const bwContrast = getColorContrastRatio('#000000', '#ffffff');
+  assert.ok(bwContrast > 20.9);
+  const lowContrast = getColorContrastRatio('#eeeeee', '#ffffff');
+  assert.ok(lowContrast < 1.3);
+});
+
+test('detail key and value localization translates Russian metadata cleanly for English UI', () => {
+  assert.equal(getLocalizedDetailKey('Формат', 'en'), 'Format');
+  assert.equal(getLocalizedDetailKey('Значение', 'en'), 'Value');
+  assert.equal(getLocalizedDetailKey('Сеть (SSID)', 'en'), 'Network (SSID)');
+  assert.equal(getLocalizedDetailValue('(Без пароля)', 'en'), '(No password)');
+  assert.equal(getLocalizedDetailKey('Формат', 'ru'), 'Формат');
+});
+

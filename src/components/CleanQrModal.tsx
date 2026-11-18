@@ -45,6 +45,7 @@ import {
 } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
 import { FolderSelect } from './FolderSelect';
+import { CodeColorPicker } from './CodeColorPicker';
 
 interface CleanQrModalProps {
   isOpen: boolean;
@@ -58,14 +59,6 @@ interface CleanQrModalProps {
   theme?: ThemeMode;
   onSaveToGallery: (item: Omit<StoredQrItem, 'id' | 'createdAt'>, existingId?: string) => void;
 }
-
-const COLOR_PRESETS = [
-  { name: 'Классический ч/б', nameEn: 'Classic B/W', fg: '#000000', bg: '#ffffff' },
-  { name: 'Мятный M3', nameEn: 'Mint M3', fg: '#003a0f', bg: '#e8f5e9' },
-  { name: 'Синий сапфир', nameEn: 'Sapphire M3', fg: '#00325b', bg: '#e3f2fd' },
-  { name: 'Аметист M3', nameEn: 'Amethyst M3', fg: '#381e72', bg: '#f3e5f5' },
-  { name: 'Глубокий темный', nameEn: 'Deep Dark', fg: '#a8f09b', bg: '#121316' },
-];
 
 export function CleanQrModal({
   isOpen,
@@ -84,7 +77,8 @@ export function CleanQrModal({
   const [activeFormat, setActiveFormat] = useState<CodeFormat>(existingItem?.codeFormat || codeFormat || 'QR_CODE');
   const [parsed, setParsed] = useState<ParsedQrData>(() => parseQrContent(rawContent || '', activeFormat));
   const [dataUrl, setDataUrl] = useState<string>('');
-  const [selectedColor, setSelectedColor] = useState(COLOR_PRESETS[0]);
+  const [fgColor, setFgColor] = useState('#000000');
+  const [bgColor, setBgColor] = useState('#ffffff');
   const [ecc, setEcc] = useState<'L' | 'M' | 'Q' | 'H'>('M');
   const [showTurnstile, setShowTurnstile] = useState(false);
   const [showStyleSettings, setShowStyleSettings] = useState(false);
@@ -121,17 +115,19 @@ export function CleanQrModal({
       setIsFavorite(existingItem.isFavorite);
       if (existingItem.style) {
         setEcc(existingItem.style.ecc || 'M');
-        const match = COLOR_PRESETS.find((c) => c.fg === existingItem.style?.fgColor);
-        setSelectedColor(match || COLOR_PRESETS[0]);
+        setFgColor(existingItem.style.fgColor || '#000000');
+        setBgColor(existingItem.style.bgColor || '#ffffff');
       } else {
-        setSelectedColor(COLOR_PRESETS[0]);
+        setFgColor('#000000');
+        setBgColor('#ffffff');
       }
     } else {
       setTitle(parsedData.displayTitle);
       setFolderId(suggestFolderForType(parsedData.type));
       setNotes('');
       setIsFavorite(false);
-      setSelectedColor(COLOR_PRESETS[0]);
+      setFgColor('#000000');
+      setBgColor('#ffffff');
     }
   }, [isOpen, rawContent, codeFormat, existingItem]);
 
@@ -144,8 +140,8 @@ export function CleanQrModal({
     if (!rawContent) return;
 
     const renderOpts: QrRenderOptions = {
-      fgColor: selectedColor.fg,
-      bgColor: selectedColor.bg,
+      fgColor,
+      bgColor,
       ecc: ecc,
       margin: 2,
       width: 720,
@@ -155,7 +151,7 @@ export function CleanQrModal({
     generateQrDataUrl(rawContent, renderOpts)
       .then(setDataUrl)
       .catch((err) => console.error('Error generating clean code preview:', err));
-  }, [rawContent, selectedColor, ecc, activeFormat]);
+  }, [rawContent, fgColor, bgColor, ecc, activeFormat]);
 
   if (!isOpen || !rawContent) return null;
 
@@ -176,8 +172,8 @@ export function CleanQrModal({
   const handleCopyImage = async () => {
     playTapSound();
     const success = await copyQrToClipboard(rawContent, {
-      fgColor: selectedColor.fg,
-      bgColor: selectedColor.bg,
+      fgColor,
+      bgColor,
       ecc,
       codeFormat: activeFormat,
     });
@@ -190,8 +186,8 @@ export function CleanQrModal({
   const handleDownload = async (format: 'png' | 'svg') => {
     playTapSound();
     await downloadQr(rawContent, title || 'ecode-code', format, {
-      fgColor: selectedColor.fg,
-      bgColor: selectedColor.bg,
+      fgColor,
+      bgColor,
       ecc,
       codeFormat: activeFormat,
     });
@@ -228,8 +224,8 @@ export function CleanQrModal({
         isFavorite,
         source: existingItem?.source || source,
         style: {
-          fgColor: selectedColor.fg,
-          bgColor: selectedColor.bg,
+          fgColor,
+          bgColor,
           ecc,
         },
       },
@@ -337,7 +333,7 @@ export function CleanQrModal({
                 className={`rounded-3xl transition-all shadow-xl my-2 border border-black/10 flex items-center justify-center ${
                   isBarcode ? 'w-full max-w-[320px] px-4 py-5 mt-8' : 'p-4'
                 }`}
-                style={{ backgroundColor: selectedColor.bg }}
+                style={{ backgroundColor: bgColor }}
               >
                 {dataUrl ? (
                   <img
@@ -423,35 +419,18 @@ export function CleanQrModal({
               </button>
 
               {showStyleSettings && (
-                <div className="p-5 pt-0 border-t border-white/[0.04] space-y-3.5">
-                  <div>
-                    <label className="text-[11px] font-medium text-[#8e918f] block mb-2">
-                      {t.paletteLabel}
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {COLOR_PRESETS.map((p) => (
-                        <button
-                          key={p.name}
-                          type="button"
-                          onClick={() => {
-                            playTapSound();
-                            setSelectedColor(p);
-                          }}
-                          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 ${
-                            selectedColor.name === p.name
-                              ? 'bg-[#394738] text-[#a8f09b] ring-1 ring-[#a8f09b]'
-                              : 'bg-[#282a2f] text-[#c4c7c5] hover:text-[#e3e2e6]'
-                          }`}
-                        >
-                          <span
-                            className="w-3.5 h-3.5 rounded-full border border-black/20"
-                            style={{ backgroundColor: p.fg }}
-                          />
-                          {lang === 'ru' ? p.name : p.nameEn}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                <div className="p-5 pt-3 border-t border-white/[0.04] space-y-3.5">
+                  <CodeColorPicker
+                    fgColor={fgColor}
+                    bgColor={bgColor}
+                    onChange={({ fgColor: nextFg, bgColor: nextBg }) => {
+                      setFgColor(nextFg);
+                      setBgColor(nextBg);
+                    }}
+                    lang={lang}
+                    theme={theme}
+                    label={t.paletteLabel}
+                  />
 
                   {compatibleFormats.length > 1 && (
                     <div>

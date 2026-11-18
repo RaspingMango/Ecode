@@ -19,6 +19,7 @@ import {
   LayoutGrid,
   List as ListIcon,
   X,
+  AlertCircle,
 } from 'lucide-react';
 import {
   Folder,
@@ -73,6 +74,8 @@ export function GalleryView({
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'alphabetical' | 'favoritesFirst'>('newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [movingItemId, setMovingItemId] = useState<string | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<StoredQrItem | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
   // Cached thumbnails keyed by render signature so edits/format changes refresh automatically
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
@@ -136,10 +139,13 @@ export function GalleryView({
       try {
         const parsed = JSON.parse(evt.target?.result as string);
         if (Array.isArray(parsed)) {
+          setImportError(null);
           onImportBackup(parsed);
+        } else {
+          setImportError(t.backupError);
         }
-      } catch (err) {
-        alert('File error: ' + err);
+      } catch {
+        setImportError(t.backupError);
       }
     };
     reader.readAsText(file);
@@ -507,15 +513,16 @@ export function GalleryView({
                     </div>
 
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (confirm(`${t.deleteConfirm} («${item.title}»)`)) {
-                          playTapSound();
-                          onDeleteItem(item.id);
-                        }
+                        playTapSound();
+                        setMovingItemId(null);
+                        setItemToDelete(item);
                       }}
                       className="w-8 h-8 rounded-full bg-[#282a2f] hover:bg-[#93000a] text-[#c4c7c5] hover:text-[#ffdad6] flex items-center justify-center transition-colors"
                       title={t.deleteTooltip}
+                      aria-label={`${t.deleteTooltip}: ${item.title}`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -524,6 +531,23 @@ export function GalleryView({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {importError && (
+        <div className="p-3 rounded-2xl bg-[#371e1d] text-[#ffdad6] text-xs flex items-center justify-between gap-2 border border-[#ffb4ab]/20">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-[#ffb4ab]" />
+            <span>{importError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setImportError(null)}
+            className="p-1 rounded-full hover:bg-white/10"
+            aria-label="Dismiss"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
@@ -557,6 +581,67 @@ export function GalleryView({
           </label>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog (replaces window.confirm for iframe compatibility) */}
+      {itemToDelete && (
+        <div
+          className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.deleteConfirmTitle}
+          onClick={() => setItemToDelete(null)}
+        >
+          <div
+            className={`w-full max-w-sm rounded-[28px] p-6 shadow-2xl space-y-4 border ${
+              isDark ? 'bg-[#1e1f23] text-[#e3e2e6] border-white/[0.08]' : 'bg-white text-[#191c19] border-black/[0.08]'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#93000a]/25 text-[#ffb4ab] flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div className="space-y-1 min-w-0">
+                <h3 className="font-bold text-base leading-tight">
+                  {t.deleteConfirmTitle}
+                </h3>
+                <p className={`text-xs leading-relaxed ${isDark ? 'text-[#c4c7c5]' : 'text-[#404943]'}`}>
+                  {t.deleteConfirm}
+                </p>
+                <p className="text-xs font-bold truncate pt-0.5">
+                  «{itemToDelete.title}»
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  playTapSound();
+                  setItemToDelete(null);
+                }}
+                className={`px-4 py-2.5 rounded-full text-xs font-semibold transition-colors ${
+                  isDark ? 'bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6]' : 'bg-[#eef1ec] hover:bg-[#e2e6df] text-[#191c19]'
+                }`}
+              >
+                {t.cancelBtn}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  playTapSound();
+                  onDeleteItem(itemToDelete.id);
+                  setItemToDelete(null);
+                }}
+                className="px-5 py-2.5 rounded-full bg-[#93000a] hover:brightness-110 active:scale-95 text-[#ffdad6] text-xs font-bold transition-all shadow-sm"
+              >
+                {t.deleteBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
