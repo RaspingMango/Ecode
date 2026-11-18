@@ -22,8 +22,8 @@ export const TRANSLATIONS = {
     themeDark: 'Тёмная',
     themeLight: 'Светлая',
     themeSystem: 'Системная',
-    themeDarkDesc: 'Тёмные поверхности Material You (AMOLED)',
-    themeLightDesc: 'Светлые мягкие поверхности Material 3',
+    themeDarkDesc: 'Тёмные контрастные поверхности (AMOLED)',
+    themeLightDesc: 'Светлые мягкие поверхности и акценты',
     languageSection: 'Язык интерфейса',
     langRussian: 'Русский',
     langEnglish: 'English',
@@ -108,7 +108,7 @@ export const TRANSLATIONS = {
     // Turnstile Modal
     turnstileTitle: 'Ecode • Максимальная яркость',
     turnstileTip: 'Поднесите экран к сканеру турникета или кассы',
-    turnstileClose: 'Готово / Вернуться в Ecode',
+    turnstileClose: 'Готово',
 
     // Gallery
     searchPlaceholder: 'Поиск кодов в Ecode...',
@@ -266,8 +266,8 @@ export const TRANSLATIONS = {
     themeDark: 'Dark',
     themeLight: 'Light',
     themeSystem: 'System',
-    themeDarkDesc: 'Material You dark surfaces (AMOLED)',
-    themeLightDesc: 'Material 3 light soft surfaces',
+    themeDarkDesc: 'Dark high-contrast surfaces (AMOLED)',
+    themeLightDesc: 'Soft light surfaces and accents',
     languageSection: 'Language',
     langRussian: 'Русский',
     langEnglish: 'English',
@@ -352,7 +352,7 @@ export const TRANSLATIONS = {
     // Turnstile Modal
     turnstileTitle: 'Ecode • Max Brightness & Contrast',
     turnstileTip: 'Hold your screen to the turnstile or checkout scanner',
-    turnstileClose: 'Done / Return to Ecode',
+    turnstileClose: 'Done',
 
     // Gallery
     searchPlaceholder: 'Search codes in Ecode...',

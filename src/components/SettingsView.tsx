@@ -472,10 +472,10 @@ export function SettingsView({
             <Info className={`w-5 h-5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
             <div>
               <div className="text-xs font-bold">
-                Ecode • {t.appVersion} 1.2
+                Ecode • {t.appVersion} 1.3
               </div>
               <p className={`text-[10px] ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
-                Material You • Offline First • Private
+                Offline First • Private
               </p>
             </div>
           </div>

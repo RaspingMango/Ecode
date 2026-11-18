@@ -556,9 +556,16 @@ export default function App() {
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${theme === 'dark' ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'}`}>
                   <QrCode className="w-4 h-4" />
                 </div>
-                <h3 className={`font-bold text-lg ${theme === 'dark' ? 'text-[#e3e2e6]' : 'text-[#191c19]'}`}>
-                  {t.aboutTitle}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className={`font-bold text-lg ${theme === 'dark' ? 'text-[#e3e2e6]' : 'text-[#191c19]'}`}>
+                    {t.aboutTitle}
+                  </h3>
+                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                    theme === 'dark' ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
+                  }`}>
+                    v1.3
+                  </span>
+                </div>
               </div>
               <button
                 onClick={() => setAboutOpen(false)}
