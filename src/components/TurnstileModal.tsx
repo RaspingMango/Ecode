@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { X, SunMedium, Smartphone, Sparkles } from 'lucide-react';
-import { CodeFormat, getBarcodeFormatLabel, is1DBarcodeFormat } from '../utils/qrLogic';
+import { CodeFormat, getBarcodeFormatLabel, is1DBarcodeFormat, resolveSafeCodeFormat } from '../utils/qrLogic';
 import { generateQrDataUrl } from '../utils/qrRenderer';
 import { Language, TRANSLATIONS } from '../utils/i18n';
 
@@ -25,7 +25,8 @@ export function TurnstileModal({
 }: TurnstileModalProps) {
   const t = TRANSLATIONS[lang];
   const [dataUrl, setDataUrl] = useState<string>('');
-  const isBarcode = is1DBarcodeFormat(codeFormat);
+  const safeFormat = resolveSafeCodeFormat(rawContent || '', codeFormat);
+  const isBarcode = is1DBarcodeFormat(safeFormat);
 
   useEffect(() => {
     if (!isOpen || !rawContent) return;
@@ -36,7 +37,7 @@ export function TurnstileModal({
       ecc: 'H',
       margin: 2,
       width: 900,
-      codeFormat,
+      codeFormat: safeFormat,
     }).then(setDataUrl).catch(console.error);
 
     let wakeLock: any = null;
@@ -89,7 +90,7 @@ export function TurnstileModal({
           )}
           {isBarcode && (
             <span className="text-xs uppercase tracking-wider font-bold text-emerald-800 px-3 py-1 rounded-full bg-emerald-100">
-              {getBarcodeFormatLabel(codeFormat)}
+              {getBarcodeFormatLabel(safeFormat)}
             </span>
           )}
         </div>

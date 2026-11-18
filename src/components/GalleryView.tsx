@@ -23,6 +23,7 @@ import {
   filterAndSortQrItems,
   getBarcodeFormatLabel,
   is1DBarcodeFormat,
+  resolveSafeCodeFormat,
 } from '../utils/qrLogic';
 import { generateQrDataUrl } from '../utils/qrRenderer';
 import { playTapSound, triggerHaptic } from '../utils/audio';
@@ -96,7 +97,7 @@ export function GalleryView({
 
   useEffect(() => {
     items.forEach((item) => {
-      const format = item.codeFormat || 'QR_CODE';
+      const format = resolveSafeCodeFormat(item.rawContent, item.codeFormat || 'QR_CODE');
       const fgColor = item.style?.fgColor || '#000000';
       const bgColor = item.style?.bgColor || '#ffffff';
       const cacheKey = `${item.id}|${item.rawContent}|${format}|${fgColor}|${bgColor}`;

@@ -501,18 +501,21 @@ export default function App() {
       </nav>
 
       {/* Pristine Clean Reconstruction Modal */}
-      <CleanQrModal
-        isOpen={cleanModalOpen}
-        onClose={() => setCleanModalOpen(false)}
-        rawContent={scannedRawContent}
-        codeFormat={scannedFormat}
-        existingItem={selectedItemForModal}
-        source={scannedSource}
-        folders={folders}
-        lang={lang}
-        theme={theme}
-        onSaveToGallery={handleSaveToGallery}
-      />
+      {cleanModalOpen && scannedRawContent && (
+        <CleanQrModal
+          key={`${selectedItemForModal?.id ?? 'scan'}::${scannedFormat}::${scannedRawContent}`}
+          isOpen={cleanModalOpen}
+          onClose={() => setCleanModalOpen(false)}
+          rawContent={scannedRawContent}
+          codeFormat={scannedFormat}
+          existingItem={selectedItemForModal}
+          source={scannedSource}
+          folders={folders}
+          lang={lang}
+          theme={theme}
+          onSaveToGallery={handleSaveToGallery}
+        />
+      )}
 
       {/* Turnstile High Brightness Fullscreen Modal */}
       {turnstileTarget && (

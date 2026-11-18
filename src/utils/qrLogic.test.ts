@@ -13,6 +13,7 @@ import {
   getBarcodeFormatLabel,
   getJsBarcodeFormat,
   getSampleBarcodeValue,
+  resolveSafeCodeFormat,
   BARCODE_FORMATS,
   StoredQrItem,
 } from './qrLogic';
@@ -253,6 +254,13 @@ test('formatCodeCount handles Russian and English plural forms', () => {
   assert.equal(formatCodeCount(21, 'ru'), '21 код');
   assert.equal(formatCodeCount(1, 'en'), '1 code');
   assert.equal(formatCodeCount(3, 'en'), '3 codes');
+});
+
+test('resolveSafeCodeFormat preserves valid barcode formats and falls back to QR_CODE on mismatch', () => {
+  assert.equal(resolveSafeCodeFormat('4607004650932', 'EAN_13'), 'EAN_13');
+  assert.equal(resolveSafeCodeFormat('TICKET:SU-2026-VIP', 'EAN_13'), 'QR_CODE');
+  assert.equal(resolveSafeCodeFormat('ECODE-8849201', 'CODE_128'), 'CODE_128');
+  assert.equal(resolveSafeCodeFormat('https://example.com', undefined), 'QR_CODE');
 });
 
 

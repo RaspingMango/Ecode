@@ -30,6 +30,7 @@ import {
   getBarcodeFormatLabel,
   is1DBarcodeFormat,
   parseQrContent,
+  resolveSafeCodeFormat,
   suggestFolderForType,
   validateBarcodePayload,
 } from '../utils/qrLogic';
@@ -74,8 +75,13 @@ export function CleanQrModal({
 }: CleanQrModalProps) {
   const isDark = theme === 'dark';
   const t = TRANSLATIONS[lang];
-  const [activeFormat, setActiveFormat] = useState<CodeFormat>(existingItem?.codeFormat || codeFormat || 'QR_CODE');
-  const [parsed, setParsed] = useState<ParsedQrData>(() => parseQrContent(rawContent || '', activeFormat));
+  const initialSafeFormat = resolveSafeCodeFormat(
+    rawContent || '',
+    existingItem?.codeFormat || codeFormat || 'QR_CODE'
+  );
+  const [activeFormat, setActiveFormat] = useState<CodeFormat>(initialSafeFormat);
+  const safeFormat = resolveSafeCodeFormat(rawContent || '', activeFormat);
+  const [parsed, setParsed] = useState<ParsedQrData>(() => parseQrContent(rawContent || '', initialSafeFormat));
   const [dataUrl, setDataUrl] = useState<string>('');
   const [fgColor, setFgColor] = useState('#000000');
   const [bgColor, setBgColor] = useState('#ffffff');
@@ -92,7 +98,7 @@ export function CleanQrModal({
   const [isCopiedImage, setIsCopiedImage] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  const isBarcode = is1DBarcodeFormat(activeFormat);
+  const isBarcode = is1DBarcodeFormat(safeFormat);
 
   const compatibleFormats = useMemo<CodeFormat[]>(() => {
     if (!rawContent) return ['QR_CODE'];
@@ -103,7 +109,10 @@ export function CleanQrModal({
   useEffect(() => {
     if (!isOpen || !rawContent) return;
 
-    const initialFormat: CodeFormat = existingItem?.codeFormat || codeFormat || 'QR_CODE';
+    const initialFormat = resolveSafeCodeFormat(
+      rawContent,
+      existingItem?.codeFormat || codeFormat || 'QR_CODE'
+    );
     setActiveFormat(initialFormat);
     const parsedData = parseQrContent(rawContent, initialFormat);
     setParsed(parsedData);
@@ -132,12 +141,13 @@ export function CleanQrModal({
   }, [isOpen, rawContent, codeFormat, existingItem]);
 
   useEffect(() => {
-    if (!rawContent) return;
-    setParsed(parseQrContent(rawContent, activeFormat));
-  }, [rawContent, activeFormat]);
+    if (!isOpen || !rawContent) return;
+    setParsed(parseQrContent(rawContent, safeFormat));
+  }, [isOpen, rawContent, safeFormat]);
 
   useEffect(() => {
-    if (!rawContent) return;
+    if (!isOpen || !rawContent) return;
+    let cancelled = false;
 
     const renderOpts: QrRenderOptions = {
       fgColor,
@@ -145,13 +155,19 @@ export function CleanQrModal({
       ecc: ecc,
       margin: 2,
       width: 720,
-      codeFormat: activeFormat,
+      codeFormat: safeFormat,
     };
 
     generateQrDataUrl(rawContent, renderOpts)
-      .then(setDataUrl)
+      .then((url) => {
+        if (!cancelled) setDataUrl(url);
+      })
       .catch((err) => console.error('Error generating clean code preview:', err));
-  }, [rawContent, fgColor, bgColor, ecc, activeFormat]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, rawContent, fgColor, bgColor, ecc, safeFormat]);
 
   if (!isOpen || !rawContent) return null;
 
@@ -175,7 +191,7 @@ export function CleanQrModal({
       fgColor,
       bgColor,
       ecc,
-      codeFormat: activeFormat,
+      codeFormat: safeFormat,
     });
     if (success) {
       setIsCopiedImage(true);
@@ -189,7 +205,7 @@ export function CleanQrModal({
       fgColor,
       bgColor,
       ecc,
-      codeFormat: activeFormat,
+      codeFormat: safeFormat,
     });
   };
 
@@ -219,7 +235,7 @@ export function CleanQrModal({
         rawContent,
         folderId,
         dataType: parsed.type,
-        codeFormat: activeFormat,
+        codeFormat: safeFormat,
         notes: notes.trim(),
         isFavorite,
         source: existingItem?.source || source,
@@ -364,7 +380,7 @@ export function CleanQrModal({
                 </span>
                 <span className="text-[11px] text-[#8e918f]">
                   {isBarcode
-                    ? `${t.formatBadgeLabel}: ${getBarcodeFormatLabel(activeFormat)}`
+                    ? `${t.formatBadgeLabel}: ${getBarcodeFormatLabel(safeFormat)}`
                     : `${t.eccCorrection}: ${ecc}`}
                 </span>
               </div>
@@ -505,7 +521,7 @@ export function CleanQrModal({
                 <div className="flex items-center gap-2 text-xs font-bold text-[#c4c7c5]">
                   {getTypeIcon()}
                   <span className="uppercase">
-                    {isBarcode ? getBarcodeFormatLabel(activeFormat) : parsed.type.toUpperCase()}
+                    {isBarcode ? getBarcodeFormatLabel(safeFormat) : parsed.type.toUpperCase()}
                   </span>
                 </div>
                 <button
@@ -677,7 +693,7 @@ export function CleanQrModal({
         onClose={() => setShowTurnstile(false)}
         title={title || parsed.displayTitle}
         rawContent={rawContent}
-        codeFormat={activeFormat}
+        codeFormat={safeFormat}
         folderName={currentFolderName}
         lang={lang}
       />

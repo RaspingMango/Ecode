@@ -71,6 +71,14 @@ export function is1DBarcodeFormat(format?: CodeFormat | null): boolean {
   return Boolean(format && format !== 'QR_CODE');
 }
 
+export function resolveSafeCodeFormat(
+  rawContent: string,
+  format?: CodeFormat | null
+): CodeFormat {
+  if (!format || format === 'QR_CODE') return 'QR_CODE';
+  return validateBarcodePayload(rawContent, format).valid ? format : 'QR_CODE';
+}
+
 export function getBarcodeFormatLabel(format?: CodeFormat | null): string {
   switch (format) {
     case 'CODE_128': return 'Code 128';
