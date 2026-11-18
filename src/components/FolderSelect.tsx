@@ -7,6 +7,17 @@ import {
   User,
   FileText,
   Folder as FolderIcon,
+  ShoppingBag,
+  Plane,
+  Briefcase,
+  Home,
+  Star,
+  Key,
+  Barcode,
+  Heart,
+  Bookmark,
+  Tag,
+  Shield,
   ChevronDown,
   Check,
 } from 'lucide-react';
@@ -15,30 +26,70 @@ import { Language, getLocalizedFolderName } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
 import { playTapSound, triggerHaptic } from '../utils/audio';
 
+export const FOLDER_ICON_OPTIONS = [
+  { id: 'Folder', labelRu: 'Папка', labelEn: 'Folder' },
+  { id: 'Ticket', labelRu: 'Билет', labelEn: 'Ticket' },
+  { id: 'CreditCard', labelRu: 'Карта', labelEn: 'Card' },
+  { id: 'Wifi', labelRu: 'Wi-Fi', labelEn: 'Wi-Fi' },
+  { id: 'Globe', labelRu: 'Ссылка', labelEn: 'Web' },
+  { id: 'User', labelRu: 'Контакт', labelEn: 'Contact' },
+  { id: 'FileText', labelRu: 'Документ', labelEn: 'Document' },
+  { id: 'Barcode', labelRu: 'Штрихкод', labelEn: 'Barcode' },
+  { id: 'ShoppingBag', labelRu: 'Покупки', labelEn: 'Shopping' },
+  { id: 'Plane', labelRu: 'Поездки', labelEn: 'Travel' },
+  { id: 'Briefcase', labelRu: 'Работа', labelEn: 'Work' },
+  { id: 'Home', labelRu: 'Дом', labelEn: 'Home' },
+  { id: 'Star', labelRu: 'Важное', labelEn: 'Star' },
+  { id: 'Key', labelRu: 'Доступ', labelEn: 'Access' },
+  { id: 'Heart', labelRu: 'Здоровье', labelEn: 'Health' },
+  { id: 'Tag', labelRu: 'Скидки', labelEn: 'Tag' },
+  { id: 'Bookmark', labelRu: 'Закладки', labelEn: 'Bookmark' },
+  { id: 'Shield', labelRu: 'Безопасность', labelEn: 'Security' },
+] as const;
+
+export function getFolderIconByName(iconName: string, className: string = 'w-4 h-4') {
+  switch (iconName.toLowerCase()) {
+    case 'ticket': return <Ticket className={className} />;
+    case 'creditcard':
+    case 'card': return <CreditCard className={className} />;
+    case 'wifi': return <Wifi className={className} />;
+    case 'globe':
+    case 'link': return <Globe className={className} />;
+    case 'user':
+    case 'contact': return <User className={className} />;
+    case 'filetext':
+    case 'document':
+    case 'file': return <FileText className={className} />;
+    case 'barcode': return <Barcode className={className} />;
+    case 'shoppingbag': return <ShoppingBag className={className} />;
+    case 'plane': return <Plane className={className} />;
+    case 'briefcase': return <Briefcase className={className} />;
+    case 'home': return <Home className={className} />;
+    case 'star': return <Star className={className} />;
+    case 'key': return <Key className={className} />;
+    case 'heart': return <Heart className={className} />;
+    case 'tag': return <Tag className={className} />;
+    case 'bookmark': return <Bookmark className={className} />;
+    case 'shield': return <Shield className={className} />;
+    default: return <FolderIcon className={className} />;
+  }
+}
+
 export function getFolderIcon(folder?: Folder | null, className: string = "w-4 h-4") {
   if (!folder) return <FolderIcon className={className} />;
 
-  const iconName = (folder.icon || '').toLowerCase();
-  const folderId = (folder.id || '').toLowerCase();
+  const iconName = (folder.icon || '').trim().toLowerCase();
+  if (iconName) {
+    return getFolderIconByName(iconName, className);
+  }
 
-  if (folderId === 'tickets' || iconName === 'ticket') {
-    return <Ticket className={className} />;
-  }
-  if (folderId === 'loyalty' || iconName === 'creditcard' || iconName === 'card') {
-    return <CreditCard className={className} />;
-  }
-  if (folderId === 'wifi' || iconName === 'wifi') {
-    return <Wifi className={className} />;
-  }
-  if (folderId === 'links' || iconName === 'globe' || iconName === 'link') {
-    return <Globe className={className} />;
-  }
-  if (folderId === 'contacts' || iconName === 'user' || iconName === 'contact') {
-    return <User className={className} />;
-  }
-  if (folderId === 'docs' || iconName === 'filetext' || iconName === 'document' || iconName === 'file') {
-    return <FileText className={className} />;
-  }
+  const folderId = (folder.id || '').toLowerCase();
+  if (folderId === 'tickets') return <Ticket className={className} />;
+  if (folderId === 'loyalty') return <CreditCard className={className} />;
+  if (folderId === 'wifi') return <Wifi className={className} />;
+  if (folderId === 'links') return <Globe className={className} />;
+  if (folderId === 'contacts') return <User className={className} />;
+  if (folderId === 'docs') return <FileText className={className} />;
 
   return <FolderIcon className={className} />;
 }

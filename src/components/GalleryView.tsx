@@ -9,17 +9,13 @@ import {
   Maximize2,
   Download,
   Upload,
-  Ticket,
-  CreditCard,
-  Wifi,
-  Globe,
-  User,
-  Folder as FolderIcon,
   QrCode,
   LayoutGrid,
   List as ListIcon,
   X,
   AlertCircle,
+  FolderCog,
+  Pencil,
 } from 'lucide-react';
 import {
   Folder,
@@ -45,6 +41,8 @@ interface GalleryViewProps {
   onDeleteItem: (id: string) => void;
   onMoveItem: (id: string, targetFolderId: string) => void;
   onOpenCreateFolder: () => void;
+  onEditFolder: (folder: Folder) => void;
+  onDeleteFolder: (folderId: string) => void;
   onExportBackup: () => void;
   onImportBackup: (items: StoredQrItem[]) => void;
   onNavigateToScan: () => void;
@@ -62,6 +60,8 @@ export function GalleryView({
   onDeleteItem,
   onMoveItem,
   onOpenCreateFolder,
+  onEditFolder,
+  onDeleteFolder,
   onExportBackup,
   onImportBackup,
   onNavigateToScan,
@@ -75,7 +75,20 @@ export function GalleryView({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [movingItemId, setMovingItemId] = useState<string | null>(null);
   const [itemToDelete, setItemToDelete] = useState<StoredQrItem | null>(null);
+  const [manageFoldersOpen, setManageFoldersOpen] = useState(false);
+  const [folderPendingDelete, setFolderPendingDelete] = useState<Folder | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+
+  // If currently selected folder was deleted, reset filter to 'all'
+  useEffect(() => {
+    if (
+      selectedFolderId !== 'all' &&
+      selectedFolderId !== 'favorites' &&
+      !folders.some((f) => f.id === selectedFolderId)
+    ) {
+      setSelectedFolderId('all');
+    }
+  }, [folders, selectedFolderId]);
 
   // Cached thumbnails keyed by render signature so edits/format changes refresh automatically
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
@@ -217,95 +230,123 @@ export function GalleryView({
         </div>
       </div>
 
-      {/* Material You 3 Filter Chips (Horizontal Scroll) */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        {/* 'All' chip */}
-        <button
-          onClick={() => {
-            playTapSound();
-            setSelectedFolderId('all');
-          }}
-          className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 shrink-0 ${
-            selectedFolderId === 'all'
-              ? 'bg-[#a8f09b] text-[#0b3810] font-bold shadow-md'
-              : 'bg-[#1e1f23] text-[#c4c7c5] hover:bg-[#282a2f] border border-white/[0.04]'
-          }`}
-        >
-          <span>{t.allCodesChip}</span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-            selectedFolderId === 'all' ? 'bg-[#0b3810]/20 text-[#0b3810]' : 'bg-[#282a2f] text-[#8e918f]'
-          }`}>
-            {folderCounts.all}
-          </span>
-        </button>
+      {/* Material You 3 Filter Chips (Horizontal Scroll) + Pinned Folder Management Controls */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 min-w-0 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {/* 'All' chip */}
+          <button
+            onClick={() => {
+              playTapSound();
+              setSelectedFolderId('all');
+            }}
+            className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 shrink-0 ${
+              selectedFolderId === 'all'
+                ? 'bg-[#a8f09b] text-[#0b3810] font-bold shadow-md'
+                : 'bg-[#1e1f23] text-[#c4c7c5] hover:bg-[#282a2f] border border-white/[0.04]'
+            }`}
+          >
+            <span>{t.allCodesChip}</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+              selectedFolderId === 'all' ? 'bg-[#0b3810]/20 text-[#0b3810]' : 'bg-[#282a2f] text-[#8e918f]'
+            }`}>
+              {folderCounts.all}
+            </span>
+          </button>
 
-        {/* 'Favorites' chip */}
-        <button
-          onClick={() => {
-            playTapSound();
-            setSelectedFolderId('favorites');
-          }}
-          className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 shrink-0 ${
-            selectedFolderId === 'favorites'
-              ? 'bg-[#ffdcc2] text-[#2e1500] font-bold shadow-md'
-              : 'bg-[#1e1f23] text-[#c4c7c5] hover:bg-[#282a2f] border border-white/[0.04]'
-          }`}
-        >
-          <Star className={`w-3.5 h-3.5 ${selectedFolderId === 'favorites' ? 'fill-[#2e1500]' : 'fill-[#ffdcc2] text-[#ffdcc2]'}`} />
-          <span>{t.favoritesChip}</span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-            selectedFolderId === 'favorites' ? 'bg-[#2e1500]/20 text-[#2e1500]' : 'bg-[#282a2f] text-[#8e918f]'
-          }`}>
-            {folderCounts.favorites}
-          </span>
-        </button>
+          {/* 'Favorites' chip */}
+          <button
+            onClick={() => {
+              playTapSound();
+              setSelectedFolderId('favorites');
+            }}
+            className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 shrink-0 ${
+              selectedFolderId === 'favorites'
+                ? 'bg-[#ffdcc2] text-[#2e1500] font-bold shadow-md'
+                : 'bg-[#1e1f23] text-[#c4c7c5] hover:bg-[#282a2f] border border-white/[0.04]'
+            }`}
+          >
+            <Star className={`w-3.5 h-3.5 ${selectedFolderId === 'favorites' ? 'fill-[#2e1500]' : 'fill-[#ffdcc2] text-[#ffdcc2]'}`} />
+            <span>{t.favoritesChip}</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+              selectedFolderId === 'favorites' ? 'bg-[#2e1500]/20 text-[#2e1500]' : 'bg-[#282a2f] text-[#8e918f]'
+            }`}>
+              {folderCounts.favorites}
+            </span>
+          </button>
 
-        {/* Folder items as M3 Filter Chips with localized names */}
-        {folders.map((f) => {
-          const isSelected = selectedFolderId === f.id;
-          const count = folderCounts[f.id] || 0;
-          const localizedName = getLocalizedFolderName(f.id, f.name, lang);
-          return (
-            <button
-              key={f.id}
-              onClick={() => {
-                playTapSound();
-                setSelectedFolderId(f.id);
-              }}
-              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 shrink-0 ${
-                isSelected
-                  ? 'bg-[#394738] text-[#a8f09b] font-bold shadow-md border border-[#a8f09b]/30'
-                  : 'bg-[#1e1f23] text-[#c4c7c5] hover:bg-[#282a2f] border border-white/[0.04]'
-              }`}
-            >
-              <span className="shrink-0" style={{ color: f.color }}>
-                {getFolderIcon(f, "w-3.5 h-3.5")}
-              </span>
-              <span>{localizedName}</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                isSelected ? 'bg-[#244927] text-[#c4fbb8]' : 'bg-[#282a2f] text-[#8e918f]'
-              }`}>
-                {count}
-              </span>
-            </button>
-          );
-        })}
+          {/* Folder items as M3 Filter Chips with localized names */}
+          {folders.map((f) => {
+            const isSelected = selectedFolderId === f.id;
+            const count = folderCounts[f.id] || 0;
+            const localizedName = getLocalizedFolderName(f.id, f.name, lang);
+            return (
+              <button
+                key={f.id}
+                onClick={() => {
+                  playTapSound();
+                  setSelectedFolderId(f.id);
+                }}
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 shrink-0 ${
+                  isSelected
+                    ? 'bg-[#394738] text-[#a8f09b] font-bold shadow-md border border-[#a8f09b]/30'
+                    : 'bg-[#1e1f23] text-[#c4c7c5] hover:bg-[#282a2f] border border-white/[0.04]'
+                }`}
+              >
+                <span className="shrink-0" style={{ color: f.color }}>
+                  {getFolderIcon(f, "w-3.5 h-3.5")}
+                </span>
+                <span>{localizedName}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                  isSelected ? 'bg-[#244927] text-[#c4fbb8]' : 'bg-[#282a2f] text-[#8e918f]'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-        {/* Add Folder button (M3 Assist Chip) */}
-        <button
-          onClick={() => {
-            playTapSound();
-            onOpenCreateFolder();
-          }}
-          className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-[#1e1f23] border border-dashed transition-colors flex items-center gap-1.5 shrink-0 ${
-            isDark
-              ? 'border-[#a8f09b]/50 text-[#a8f09b] hover:bg-[#a8f09b]/10'
-              : 'border-[#2e6c31]/50 text-[#2e6c31] hover:bg-[#2e6c31]/10'
-          }`}
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>{t.newFolderChip}</span>
-        </button>
+        {/* Pinned Folder Actions: Always visible without horizontal scrolling */}
+        <div className={`flex items-center gap-1.5 shrink-0 pb-1 pl-2 border-l ${
+          isDark ? 'border-white/[0.08]' : 'border-black/[0.08]'
+        }`}>
+          <button
+            type="button"
+            onClick={() => {
+              playTapSound();
+              onOpenCreateFolder();
+            }}
+            className={`h-8 px-2.5 sm:px-3 rounded-full text-xs font-semibold whitespace-nowrap border border-dashed transition-colors flex items-center gap-1.5 shrink-0 ${
+              isDark
+                ? 'bg-[#1e1f23] border-[#a8f09b]/50 text-[#a8f09b] hover:bg-[#a8f09b]/10'
+                : 'bg-white border-[#2e6c31]/50 text-[#2e6c31] hover:bg-[#2e6c31]/10'
+            }`}
+            aria-label={t.newFolderChip}
+            title={t.newFolderChip}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{t.newFolderChip}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              playTapSound();
+              setFolderPendingDelete(null);
+              setManageFoldersOpen(true);
+            }}
+            className={`h-8 px-3 rounded-full text-xs font-bold whitespace-nowrap transition-colors flex items-center gap-1.5 shrink-0 border ${
+              isDark
+                ? 'bg-[#244927] hover:bg-[#2f5c33] text-[#c4fbb8] border-[#a8f09b]/25'
+                : 'bg-[#e8f5e9] hover:bg-[#d7eed9] text-[#1b5e20] border-[#2e6c31]/25'
+            }`}
+            aria-label={t.manageFoldersTitle}
+            title={t.manageFoldersTitle}
+          >
+            <FolderCog className="w-3.5 h-3.5" />
+            <span>{t.manageFoldersBtn}</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Grid / List of Items (Material You 3 Cards) */}
@@ -637,6 +678,195 @@ export function GalleryView({
                 className="px-5 py-2.5 rounded-full bg-[#93000a] hover:brightness-110 active:scale-95 text-[#ffdad6] text-xs font-bold transition-all shadow-sm"
               >
                 {t.deleteBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Folders Modal (Create / Edit Icon & Color / Delete) */}
+      {manageFoldersOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.manageFoldersTitle}
+          onClick={() => {
+            setFolderPendingDelete(null);
+            setManageFoldersOpen(false);
+          }}
+        >
+          <div
+            className={`w-full max-w-md rounded-[28px] p-6 shadow-2xl space-y-4 border max-h-[88vh] flex flex-col ${
+              isDark ? 'bg-[#1e1f23] text-[#e3e2e6] border-white/[0.08]' : 'bg-white text-[#191c19] border-black/[0.08]'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 ${
+                  isDark ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
+                }`}>
+                  <FolderCog className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-base leading-tight truncate">
+                    {t.manageFoldersTitle}
+                  </h3>
+                  <p className={`text-[11px] truncate ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
+                    {t.manageFoldersDesc}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  playTapSound();
+                  setFolderPendingDelete(null);
+                  setManageFoldersOpen(false);
+                }}
+                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                  isDark ? 'bg-white/[0.04] hover:bg-white/[0.08] text-[#c4c7c5]' : 'bg-black/[0.04] hover:bg-black/[0.08] text-[#575a56]'
+                }`}
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Inline Folder Delete Confirmation */}
+            {folderPendingDelete && (
+              <div className={`p-3.5 rounded-2xl border space-y-2.5 animate-in fade-in ${
+                isDark
+                  ? 'bg-[#371e1d] text-[#ffdad6] border-[#ffb4ab]/25'
+                  : 'bg-[#fde8e8] text-[#690005] border-[#b3261e]/20'
+              }`}>
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold">
+                    {t.deleteFolderTitle} «{getLocalizedFolderName(folderPendingDelete.id, folderPendingDelete.name, lang)}»
+                  </div>
+                  <p className={`text-[11px] leading-relaxed ${isDark ? 'text-[#ffdad6]/85' : 'text-[#690005]/85'}`}>
+                    {t.deleteFolderConfirm}
+                  </p>
+                </div>
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playTapSound();
+                      setFolderPendingDelete(null);
+                    }}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold ${
+                      isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'
+                    }`}
+                  >
+                    {t.cancelBtn}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playTapSound();
+                      onDeleteFolder(folderPendingDelete.id);
+                      setFolderPendingDelete(null);
+                    }}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold hover:brightness-105 ${
+                      isDark ? 'bg-[#ffb4ab] text-[#690005]' : 'bg-[#b3261e] text-white'
+                    }`}
+                  >
+                    {t.deleteBtn}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Folder List */}
+            <div className="overflow-y-auto space-y-2 pr-1">
+              {folders.map((f) => {
+                const localizedName = getLocalizedFolderName(f.id, f.name, lang);
+                const count = folderCounts[f.id] || 0;
+                const canDelete = folders.length > 1;
+
+                return (
+                  <div
+                    key={f.id}
+                    className={`p-3 rounded-2xl flex items-center justify-between gap-2 border ${
+                      isDark ? 'bg-[#282a2f] border-white/[0.04]' : 'bg-[#f7f9f5] border-black/[0.06]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                        style={{
+                          backgroundColor: `${f.color}22`,
+                          color: f.color,
+                        }}
+                      >
+                        {getFolderIcon(f, 'w-4 h-4')}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold truncate">
+                          {localizedName}
+                        </div>
+                        <div className={`text-[10px] ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
+                          {count} {t.folderItemsCount}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playTapSound();
+                          setFolderPendingDelete(null);
+                          setManageFoldersOpen(false);
+                          onEditFolder(f);
+                        }}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                          isDark ? 'bg-[#1e1f23] hover:bg-[#33353a] text-[#c4c7c5]' : 'bg-white hover:bg-[#e2e6df] text-[#404943]'
+                        }`}
+                        title={t.editFolderTooltip}
+                        aria-label={`${t.editFolderTooltip}: ${localizedName}`}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={!canDelete}
+                        onClick={() => {
+                          playTapSound();
+                          setFolderPendingDelete(f);
+                        }}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors disabled:opacity-35 ${
+                          isDark
+                            ? 'bg-[#1e1f23] hover:bg-[#93000a] text-[#c4c7c5] hover:text-[#ffdad6]'
+                            : 'bg-white hover:bg-[#fde8e8] text-[#404943] hover:text-[#b3261e]'
+                        }`}
+                        title={canDelete ? t.deleteFolderTooltip : t.cannotDeleteLastFolder}
+                        aria-label={`${t.deleteFolderTooltip}: ${localizedName}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-1 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  playTapSound();
+                  setFolderPendingDelete(null);
+                  setManageFoldersOpen(false);
+                  onOpenCreateFolder();
+                }}
+                className="flex-1 py-3 px-4 rounded-full bg-[#a8f09b] hover:brightness-105 text-[#0b3810] font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{t.newFolderChip}</span>
               </button>
             </div>
           </div>

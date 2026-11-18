@@ -3,7 +3,7 @@ export type Language = 'ru' | 'en';
 export const TRANSLATIONS = {
   ru: {
     // App Header
-    appSlogan: 'QR и штрихкоды • Захват экрана • Галерея',
+    appSlogan: 'Сканер и кошелёк кодов',
     soundOn: 'Звук включен',
     soundOff: 'Звук выключен',
     aboutApp: 'О приложении Ecode',
@@ -54,9 +54,9 @@ export const TRANSLATIONS = {
     screenModeDesc: 'Считывайте QR-коды и штрихкоды прямо из активного окна, Telegram, билета или сайта на вашем экране без второго телефона.',
     startScreenCapture: 'Выбрать экран / окно для сканирования',
     stopScreenCapture: 'Остановить захват экрана',
-    screenModeTip: 'Выберите окно с QR или штрихкодом. Ecode моментально распознает его и откроет в чистом векторном качестве!',
+    screenModeTip: 'Выберите окно с QR или штрихкодом для распознавания.',
     screenshotTitle: 'Скриншот или фото',
-    screenshotDesc: 'Сделайте снимок экрана или выберите изображение с QR-кодом или штрихкодом — Ecode моментально его восстановит.',
+    screenshotDesc: 'Выберите изображение с QR-кодом или штрихкодом для распознавания.',
     chooseFromGallery: 'Выбрать из галереи',
     pasteScreenshot: 'Вставить скриншот',
     analyzingImage: 'Анализ изображения и декодирование...',
@@ -71,11 +71,11 @@ export const TRANSLATIONS = {
     sampleBarcode: '📊 EAN-13 Штрихкод',
 
     // Clean QR Modal
-    cleanModalTitle: 'Чистая реконструкция QR',
-    cleanBarcodeModalTitle: 'Чистый штрихкод',
-    cleanModalSubtitle: 'Преобразован в идеальный векторный оригинал',
+    cleanModalTitle: 'Просмотр QR-кода',
+    cleanBarcodeModalTitle: 'Просмотр штрихкода',
+    cleanModalSubtitle: 'Перерисован для сканирования и сохранения',
     fullScreenTurnstile: 'Во весь экран',
-    vectorOriginalBadge: '✓ 100% Векторный оригинал',
+    vectorOriginalBadge: 'Векторная графика',
     eccCorrection: 'Коррекция',
     formatBadgeLabel: 'Формат',
     downloadPng: 'PNG',
@@ -115,9 +115,10 @@ export const TRANSLATIONS = {
     allCodesChip: 'Все коды',
     favoritesChip: 'Избранное',
     newFolderChip: 'Новая папка',
+    manageFoldersBtn: 'Папки',
     emptyTitle: 'В этой папке пока пусто',
     emptySearchTitle: 'Ничего не найдено',
-    emptyDesc: 'Отсканируйте QR или штрихкод с экрана или камеры, либо создайте чистый код в Ecode!',
+    emptyDesc: 'Отсканируйте QR или штрихкод с экрана или камеры, либо создайте новый код.',
     emptySearchDesc: 'Попробуйте изменить поисковый запрос или выбрать другую папку.',
     scanFirstBtn: 'Отсканировать код',
     createFirstBtn: 'Создать код',
@@ -144,8 +145,8 @@ export const TRANSLATIONS = {
 
     // Generator
     generatorTitle: 'Параметры содержимого',
-    liveVectorPreview: 'Живой векторный просмотр',
-    pristineVectorQuality: 'Безупречное векторное качество',
+    liveVectorPreview: 'Предпросмотр',
+    pristineVectorQuality: 'Векторная графика',
     saveToGalleryGen: 'Сохранить в галерею',
     savedToGalleryGen: 'Сохранено в Ecode!',
     templateText: 'Текст',
@@ -205,21 +206,32 @@ export const TRANSLATIONS = {
     greenLabel: 'G',
     blueLabel: 'B',
 
-    // Folder Modal
+    // Folder Modal & Management
     newFolderTitle: 'Новая папка в Ecode',
     editFolderTitle: 'Редактировать папку',
+    manageFoldersTitle: 'Управление папками',
+    manageFoldersDesc: 'Создавайте, настраивайте иконки или удаляйте папки',
     folderNameLabel: 'Название папки:',
     folderNamePlaceholder: 'Например: Поездка, Магазины, Счета...',
     folderNameError: 'Введите название папки',
-    folderColorLabel: 'Цветовой акцент Material You:',
+    folderIconLabel: 'Иконка папки:',
+    folderColorLabel: 'Цвет иконки:',
+    folderPreviewLabel: 'Предпросмотр:',
+    customColorLabel: 'Свой цвет',
+    deleteFolderTitle: 'Удалить папку?',
+    deleteFolderConfirm: 'Папка будет удалена, а сохранённые в ней коды перенесутся в другую папку.',
+    cannotDeleteLastFolder: 'Нельзя удалить единственную папку',
+    folderItemsCount: 'кодов',
+    editFolderTooltip: 'Редактировать папку',
+    deleteFolderTooltip: 'Удалить папку',
     saveFolderBtn: 'Сохранить',
 
     // About Modal
     aboutTitle: 'Ecode',
     feature1Title: 'Захват экрана и камеры',
     feature1Desc: 'Считывайте QR-коды и штрихкоды прямо с экрана в любых приложениях без второго устройства.',
-    feature2Title: 'Векторная реконструкция',
-    feature2Desc: 'Считанный QR или штрихкод преобразуется в безупречный векторный оригинал для турникетов и касс.',
+    feature2Title: 'Перерисовка кода',
+    feature2Desc: 'Считанный QR или штрихкод отрисовывается заново для удобного сканирования на турникетах и кассах.',
     feature3Title: 'Галерея и папки',
     feature3Desc: 'Раскладывайте билеты, карты лояльности, Wi-Fi и штрихкоды по категориям.',
     aboutUnderstood: 'Понятно',
@@ -234,7 +246,7 @@ export const TRANSLATIONS = {
   },
   en: {
     // App Header
-    appSlogan: 'QR & Barcodes • Screen Capture • Gallery',
+    appSlogan: 'Code Scanner & Wallet',
     soundOn: 'Sound enabled',
     soundOff: 'Sound muted',
     aboutApp: 'About Ecode',
@@ -285,9 +297,9 @@ export const TRANSLATIONS = {
     screenModeDesc: 'Read QR codes and barcodes directly from any active window, Telegram, PDF ticket, or website on your screen without a second device.',
     startScreenCapture: 'Select Screen / Window to Scan',
     stopScreenCapture: 'Stop Screen Capture',
-    screenModeTip: 'Select any window with a QR or barcode. Ecode instantly recognizes it and displays it in pristine vector quality!',
+    screenModeTip: 'Select a window containing a QR code or barcode to scan.',
     screenshotTitle: 'Screenshot or Photo',
-    screenshotDesc: 'Take a screenshot or select a photo with a QR code or barcode — Ecode will instantly reconstruct it.',
+    screenshotDesc: 'Select an image with a QR code or barcode to scan.',
     chooseFromGallery: 'Choose from Files',
     pasteScreenshot: 'Paste Screenshot',
     analyzingImage: 'Analyzing image and decoding...',
@@ -302,11 +314,11 @@ export const TRANSLATIONS = {
     sampleBarcode: '📊 EAN-13 Barcode',
 
     // Clean QR Modal
-    cleanModalTitle: 'Pristine QR Reconstruction',
-    cleanBarcodeModalTitle: 'Pristine Barcode',
-    cleanModalSubtitle: 'Converted to original pristine vector quality',
+    cleanModalTitle: 'QR Code View',
+    cleanBarcodeModalTitle: 'Barcode View',
+    cleanModalSubtitle: 'Redrawn for scanning and saving',
     fullScreenTurnstile: 'Full Screen',
-    vectorOriginalBadge: '✓ 100% Vector Original',
+    vectorOriginalBadge: 'Vector Graphics',
     eccCorrection: 'ECC',
     formatBadgeLabel: 'Format',
     downloadPng: 'PNG',
@@ -346,9 +358,10 @@ export const TRANSLATIONS = {
     allCodesChip: 'All Codes',
     favoritesChip: 'Favorites',
     newFolderChip: 'New Folder',
+    manageFoldersBtn: 'Folders',
     emptyTitle: 'This folder is empty',
     emptySearchTitle: 'No codes found',
-    emptyDesc: 'Scan a QR or barcode from screen or camera, or generate a clean code in Ecode!',
+    emptyDesc: 'Scan a QR or barcode from screen or camera, or create a new code.',
     emptySearchDesc: 'Try adjusting your search query or pick a different folder.',
     scanFirstBtn: 'Scan Code',
     createFirstBtn: 'Create Code',
@@ -375,8 +388,8 @@ export const TRANSLATIONS = {
 
     // Generator
     generatorTitle: 'Code Content Parameters',
-    liveVectorPreview: 'Live Vector Preview',
-    pristineVectorQuality: 'Flawless Vector Quality',
+    liveVectorPreview: 'Preview',
+    pristineVectorQuality: 'Vector Graphics',
     saveToGalleryGen: 'Save to Gallery',
     savedToGalleryGen: 'Saved to Ecode!',
     templateText: 'Text',
@@ -436,21 +449,32 @@ export const TRANSLATIONS = {
     greenLabel: 'G',
     blueLabel: 'B',
 
-    // Folder Modal
+    // Folder Modal & Management
     newFolderTitle: 'New Folder in Ecode',
     editFolderTitle: 'Edit Folder',
+    manageFoldersTitle: 'Manage Folders',
+    manageFoldersDesc: 'Create folders, customize icons & colors, or remove unused ones',
     folderNameLabel: 'Folder Name:',
     folderNamePlaceholder: 'e.g. Trip, Loyalty Cards, Invoices...',
     folderNameError: 'Please enter a folder name',
-    folderColorLabel: 'Material You Color Accent:',
+    folderIconLabel: 'Folder Icon:',
+    folderColorLabel: 'Icon Color:',
+    folderPreviewLabel: 'Preview:',
+    customColorLabel: 'Custom color',
+    deleteFolderTitle: 'Delete Folder?',
+    deleteFolderConfirm: 'The folder will be removed and any codes inside it will be moved to another folder.',
+    cannotDeleteLastFolder: 'Cannot delete the last remaining folder',
+    folderItemsCount: 'codes',
+    editFolderTooltip: 'Edit folder',
+    deleteFolderTooltip: 'Delete folder',
     saveFolderBtn: 'Save Folder',
 
     // About Modal
     aboutTitle: 'Ecode',
     feature1Title: 'Screen & Camera Capture',
     feature1Desc: 'Read QR codes and barcodes directly from your active screen in any app or via camera.',
-    feature2Title: 'Vector Reconstruction',
-    feature2Desc: 'Converts scanned QR or barcode into a flawless vector original for turnstiles and checkout scanners.',
+    feature2Title: 'Code Reconstruction',
+    feature2Desc: 'Re-renders scanned QR codes and barcodes cleanly for turnstiles and checkout scanners.',
     feature3Title: 'Gallery & Folders',
     feature3Desc: 'Organize tickets, loyalty cards, Wi-Fi credentials and barcodes with ease.',
     aboutUnderstood: 'Got It',
@@ -483,6 +507,18 @@ export function saveLanguagePreference(lang: Language): void {
 
 export function getLocalizedFolderName(folderId: string, defaultName: string, lang: Language): string {
   const dict = TRANSLATIONS[lang];
+  const stockNames: Record<string, { ru: string; en: string }> = {
+    tickets: { ru: TRANSLATIONS.ru.folderTickets, en: TRANSLATIONS.en.folderTickets },
+    loyalty: { ru: TRANSLATIONS.ru.folderLoyalty, en: TRANSLATIONS.en.folderLoyalty },
+    wifi: { ru: TRANSLATIONS.ru.folderWifi, en: TRANSLATIONS.en.folderWifi },
+    links: { ru: TRANSLATIONS.ru.folderLinks, en: TRANSLATIONS.en.folderLinks },
+    contacts: { ru: TRANSLATIONS.ru.folderContacts, en: TRANSLATIONS.en.folderContacts },
+    docs: { ru: TRANSLATIONS.ru.folderDocs, en: TRANSLATIONS.en.folderDocs },
+  };
+  const stock = stockNames[folderId];
+  if (stock && defaultName !== stock.ru && defaultName !== stock.en && defaultName.trim().length > 0) {
+    return defaultName;
+  }
   switch (folderId) {
     case 'tickets': return dict.folderTickets;
     case 'loyalty': return dict.folderLoyalty;

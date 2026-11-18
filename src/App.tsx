@@ -58,8 +58,9 @@ export default function App() {
   const [turnstileModalOpen, setTurnstileModalOpen] = useState(false);
   const [turnstileTarget, setTurnstileTarget] = useState<StoredQrItem | null>(null);
 
-  // Folder creator modal
+  // Folder creator / editor modal
   const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
 
   // Sound FX toggle
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -168,7 +169,26 @@ export default function App() {
       }
       return [...prev, newFolder];
     });
+    setEditingFolder(null);
   };
+
+  const handleDeleteFolder = (folderId: string) => {
+    if (folders.length <= 1) return;
+    triggerHaptic(20);
+    const remaining = folders.filter((f) => f.id !== folderId);
+    const fallbackId = (remaining.find((f) => f.id === 'docs') || remaining[0]).id;
+    setItems((prev) => prev.map((it) => (it.folderId === folderId ? { ...it, folderId: fallbackId } : it)));
+    setFolders(remaining);
+  };
+
+  const activeSectionTitle =
+    activeTab === 'scanner'
+      ? t.tabScanner
+      : activeTab === 'gallery'
+        ? t.tabGallery
+        : activeTab === 'generator'
+          ? t.tabCreate
+          : t.tabSettings;
 
   const handleExportBackup = () => {
     const dataStr = JSON.stringify(items, null, 2);
@@ -204,8 +224,8 @@ export default function App() {
               <h1 className="font-extrabold text-lg tracking-tight text-[#e3e2e6] leading-tight">
                 Ecode
               </h1>
-              <p className="text-xs text-[#8e918f] -mt-0.5">
-                {t.appSlogan}
+              <p className="text-xs text-[#8e918f] -mt-0.5 font-medium">
+                {activeSectionTitle}
               </p>
             </div>
           </div>
@@ -279,7 +299,15 @@ export default function App() {
             onToggleFavorite={handleToggleFavorite}
             onDeleteItem={handleDeleteItem}
             onMoveItem={handleMoveItem}
-            onOpenCreateFolder={() => setFolderModalOpen(true)}
+            onOpenCreateFolder={() => {
+              setEditingFolder(null);
+              setFolderModalOpen(true);
+            }}
+            onEditFolder={(folder) => {
+              setEditingFolder(folder);
+              setFolderModalOpen(true);
+            }}
+            onDeleteFolder={handleDeleteFolder}
             onExportBackup={handleExportBackup}
             onImportBackup={handleImportBackup}
             onNavigateToScan={() => setActiveTab('scanner')}
@@ -474,11 +502,16 @@ export default function App() {
         />
       )}
 
-      {/* Custom Folder Creator Modal */}
+      {/* Custom Folder Creator & Editor Modal */}
       <FolderModal
         isOpen={folderModalOpen}
-        onClose={() => setFolderModalOpen(false)}
+        onClose={() => {
+          setFolderModalOpen(false);
+          setEditingFolder(null);
+        }}
+        existingFolder={editingFolder}
         lang={lang}
+        theme={theme}
         onSave={handleSaveFolder}
       />
 

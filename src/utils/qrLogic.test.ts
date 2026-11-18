@@ -18,7 +18,7 @@ import {
 } from './qrLogic';
 import { scanBarcodeWithZxing, mapZxingFormatToCodeFormat, ZXing } from './qrScanner';
 import { hexToRgb, rgbToHex, normalizeHexColor, getColorContrastRatio } from './color';
-import { getLocalizedDetailKey, getLocalizedDetailValue } from './i18n';
+import { getLocalizedDetailKey, getLocalizedDetailValue, getLocalizedFolderName } from './i18n';
 
 test('parseQrContent parses Wi-Fi payload correctly', () => {
   const raw = 'WIFI:S:Home_Network_5G;T:WPA;P:SuperSecret123;H:false;;';
@@ -236,4 +236,12 @@ test('detail key and value localization translates Russian metadata cleanly for 
   assert.equal(getLocalizedDetailValue('(Без пароля)', 'en'), '(No password)');
   assert.equal(getLocalizedDetailKey('Формат', 'ru'), 'Формат');
 });
+
+test('getLocalizedFolderName translates stock names and preserves custom renames', () => {
+  assert.equal(getLocalizedFolderName('tickets', 'Билеты', 'en'), 'Tickets');
+  assert.equal(getLocalizedFolderName('tickets', 'Tickets', 'ru'), 'Билеты');
+  assert.equal(getLocalizedFolderName('tickets', 'Авиаперелёты', 'en'), 'Авиаперелёты');
+  assert.equal(getLocalizedFolderName('folder-123', 'Путешествия', 'en'), 'Путешествия');
+});
+
 
