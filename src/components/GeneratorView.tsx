@@ -373,7 +373,9 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
               }}
               className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 shrink-0 ${
                 isSelected
-                  ? 'bg-[#a8f09b] text-[#0b3810] font-bold shadow-md'
+                  ? isDark
+                    ? 'bg-[#a8f09b] text-[#0b3810] font-bold shadow-md'
+                    : 'bg-[#2e6c31] text-white font-bold shadow-md'
                   : 'bg-[#1e1f23] text-[#c4c7c5] hover:bg-[#282a2f] border border-white/[0.04]'
               }`}
             >
@@ -472,7 +474,9 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
                     type="checkbox"
                     checked={wifiHidden}
                     onChange={(e) => setWifiHidden(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#a8f09b] focus:ring-[#a8f09b] bg-[#282a2f] border-none"
+                    className={`w-4 h-4 rounded bg-[#282a2f] border-none ${
+                      isDark ? 'accent-[#a8f09b]' : 'accent-[#2e6c31]'
+                    }`}
                   />
                   <span>{t.wifiHiddenLabel}</span>
                 </label>
@@ -570,7 +574,9 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
                         onClick={() => handleSelectBarcodeFormat(fmt)}
                         className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                           isFmtSelected
-                            ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
+                            ? isDark
+                              ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
+                              : 'bg-[#2e6c31] text-white shadow-sm'
                             : 'bg-[#282a2f] text-[#c4c7c5] hover:bg-[#33353a]'
                         }`}
                       >
@@ -610,8 +616,12 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
               </div>
 
               {barcodeErrorText && (
-                <div className="p-3 rounded-2xl bg-[#371e1d] text-[#ffdad6] text-xs flex items-center gap-2 border border-[#ffb4ab]/20">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-[#ffb4ab]" />
+                <div className={`p-3 rounded-2xl text-xs flex items-center gap-2 border ${
+                  isDark
+                    ? 'bg-[#371e1d] text-[#ffdad6] border-[#ffb4ab]/20'
+                    : 'bg-[#fde8e8] text-[#690005] border-[#b3261e]/20'
+                }`}>
+                  <AlertCircle className={`w-4 h-4 shrink-0 ${isDark ? 'text-[#ffb4ab]' : 'text-[#b3261e]'}`} />
                   <span>{barcodeErrorText}</span>
                 </div>
               )}
@@ -753,9 +763,13 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
                 setShowTurnstile(true);
               }}
               disabled={!canGenerate}
-              className="px-3 py-1.5 rounded-full bg-[#244927] hover:bg-[#2f5c33] disabled:opacity-40 text-[#c4fbb8] text-xs font-semibold flex items-center gap-1 transition-colors active:scale-95"
+              className={`px-3 py-1.5 rounded-full disabled:opacity-40 text-xs font-semibold flex items-center gap-1 transition-colors active:scale-95 ${
+                isDark
+                  ? 'bg-[#244927] hover:bg-[#2f5c33] text-[#c4fbb8]'
+                  : 'bg-[#e8f5e9] hover:bg-[#d7eed9] text-[#1b5e20]'
+              }`}
             >
-              <Maximize2 className="w-3 h-3 text-[#a8f09b]" />
+              <Maximize2 className={`w-3 h-3 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
               <span>{t.turnstileBtn}</span>
             </button>
           </div>
@@ -817,9 +831,9 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
               onClick={handleSave}
               disabled={savedSuccess || !canGenerate}
               className={`w-full py-3.5 px-5 rounded-full font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-40 transition-all ${
-                savedSuccess
-                  ? 'bg-[#a8f09b] text-[#0b3810] font-bold'
-                  : 'bg-[#a8f09b] hover:brightness-105 text-[#0b3810]'
+                isDark
+                  ? 'bg-[#a8f09b] hover:brightness-105 text-[#0b3810]'
+                  : 'bg-[#2e6c31] hover:bg-[#255928] text-white'
               }`}
             >
               {savedSuccess ? (

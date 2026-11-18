@@ -218,8 +218,14 @@ export default function App() {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           {/* Logo & Brand (Clean: "Material You" badge removed as requested) */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#244927] flex items-center justify-center shadow-sm">
-              <QrCode className="w-5 h-5 text-[#a8f09b]" />
+            <div
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-sm border transition-colors duration-200 ${
+                theme === 'dark'
+                  ? 'bg-[#244927] text-[#a8f09b] border-[#a8f09b]/15'
+                  : 'bg-[#e8f5e9] text-[#2e6c31] border-[#2e6c31]/15'
+              }`}
+            >
+              <QrCode className="w-5 h-5" />
             </div>
 
             <div>
@@ -242,7 +248,9 @@ export default function App() {
               }}
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
                 activeTab === 'settings'
-                  ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm border-transparent'
+                  ? theme === 'dark'
+                    ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm border-transparent'
+                    : 'bg-[#d8efd4] text-[#113d16] shadow-sm border-[#2e6c31]/20'
                   : 'bg-[#1e1f23] hover:bg-[#282a2f] text-[#c4c7c5] hover:text-[#e3e2e6] border-white/[0.04]'
               }`}
               title={t.tabSettings}
@@ -259,7 +267,7 @@ export default function App() {
               }}
               className="w-10 h-10 rounded-full bg-[#1e1f23] hover:bg-[#282a2f] active:scale-95 flex items-center justify-center text-[#c4c7c5] hover:text-[#e3e2e6] transition-all border border-white/[0.04]"
               title={soundEnabled ? t.soundOn : t.soundOff}
-              aria-label={t.soundOn}
+              aria-label={soundEnabled ? t.soundOn : t.soundOff}
             >
               {soundEnabled ? (
                 <Volume2 className={`w-4 h-4 ${theme === 'dark' ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
@@ -363,8 +371,12 @@ export default function App() {
             <div
               className={`w-14 sm:w-16 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
                 activeTab === 'scanner'
-                  ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
-                  : 'text-[#c4c7c5] hover:bg-white/[0.06]'
+                  ? theme === 'dark'
+                    ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
+                    : 'bg-[#d8efd4] text-[#113d16] shadow-sm'
+                  : theme === 'dark'
+                    ? 'text-[#c4c7c5] hover:bg-white/[0.06]'
+                    : 'text-[#575a56] hover:bg-black/[0.05]'
               }`}
             >
               <ScanLine className="w-5 h-5" />
@@ -372,7 +384,7 @@ export default function App() {
             <span
               className={`text-[11px] sm:text-xs mt-1 transition-colors ${
                 activeTab === 'scanner'
-                  ? 'font-bold text-[#e3e2e6]'
+                  ? theme === 'dark' ? 'font-bold text-[#e3e2e6]' : 'font-bold text-[#191c19]'
                   : 'text-[#8e918f]'
               }`}
             >
@@ -392,13 +404,19 @@ export default function App() {
             <div
               className={`w-14 sm:w-16 h-8 rounded-full flex items-center justify-center transition-all duration-200 relative ${
                 activeTab === 'gallery'
-                  ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
-                  : 'text-[#c4c7c5] hover:bg-white/[0.06]'
+                  ? theme === 'dark'
+                    ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
+                    : 'bg-[#d8efd4] text-[#113d16] shadow-sm'
+                  : theme === 'dark'
+                    ? 'text-[#c4c7c5] hover:bg-white/[0.06]'
+                    : 'text-[#575a56] hover:bg-black/[0.05]'
               }`}
             >
               <GalleryIcon className="w-5 h-5" />
               {items.length > 0 && (
-                <span className="absolute -top-1 right-2 sm:right-2.5 min-w-4 h-4 px-1 rounded-full bg-[#f2b8b5] text-[#601410] font-extrabold text-[10px] flex items-center justify-center shadow-sm">
+                <span className={`absolute -top-1 right-2 sm:right-2.5 min-w-4 h-4 px-1 rounded-full font-extrabold text-[10px] flex items-center justify-center shadow-sm ${
+                  theme === 'dark' ? 'bg-[#f2b8b5] text-[#601410]' : 'bg-[#2e6c31] text-white'
+                }`}>
                   {items.length > 99 ? '99+' : items.length}
                 </span>
               )}
@@ -406,7 +424,7 @@ export default function App() {
             <span
               className={`text-[11px] sm:text-xs mt-1 transition-colors ${
                 activeTab === 'gallery'
-                  ? 'font-bold text-[#e3e2e6]'
+                  ? theme === 'dark' ? 'font-bold text-[#e3e2e6]' : 'font-bold text-[#191c19]'
                   : 'text-[#8e918f]'
               }`}
             >
@@ -426,8 +444,12 @@ export default function App() {
             <div
               className={`w-14 sm:w-16 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
                 activeTab === 'generator'
-                  ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
-                  : 'text-[#c4c7c5] hover:bg-white/[0.06]'
+                  ? theme === 'dark'
+                    ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
+                    : 'bg-[#d8efd4] text-[#113d16] shadow-sm'
+                  : theme === 'dark'
+                    ? 'text-[#c4c7c5] hover:bg-white/[0.06]'
+                    : 'text-[#575a56] hover:bg-black/[0.05]'
               }`}
             >
               <PlusCircle className="w-5 h-5" />
@@ -435,7 +457,7 @@ export default function App() {
             <span
               className={`text-[11px] sm:text-xs mt-1 transition-colors ${
                 activeTab === 'generator'
-                  ? 'font-bold text-[#e3e2e6]'
+                  ? theme === 'dark' ? 'font-bold text-[#e3e2e6]' : 'font-bold text-[#191c19]'
                   : 'text-[#8e918f]'
               }`}
             >
@@ -455,8 +477,12 @@ export default function App() {
             <div
               className={`w-14 sm:w-16 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
                 activeTab === 'settings'
-                  ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
-                  : 'text-[#c4c7c5] hover:bg-white/[0.06]'
+                  ? theme === 'dark'
+                    ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
+                    : 'bg-[#d8efd4] text-[#113d16] shadow-sm'
+                  : theme === 'dark'
+                    ? 'text-[#c4c7c5] hover:bg-white/[0.06]'
+                    : 'text-[#575a56] hover:bg-black/[0.05]'
               }`}
             >
               <SettingsIcon className="w-5 h-5" />
@@ -464,7 +490,7 @@ export default function App() {
             <span
               className={`text-[11px] sm:text-xs mt-1 transition-colors ${
                 activeTab === 'settings'
-                  ? 'font-bold text-[#e3e2e6]'
+                  ? theme === 'dark' ? 'font-bold text-[#e3e2e6]' : 'font-bold text-[#191c19]'
                   : 'text-[#8e918f]'
               }`}
             >
@@ -588,7 +614,11 @@ export default function App() {
 
             <button
               onClick={() => setAboutOpen(false)}
-              className="w-full py-3 rounded-full bg-[#a8f09b] text-[#0b3810] font-bold text-xs hover:brightness-105 active:scale-98 transition-all shadow-md"
+              className={`w-full py-3 rounded-full font-bold text-xs active:scale-98 transition-all shadow-md ${
+                theme === 'dark'
+                  ? 'bg-[#a8f09b] text-[#0b3810] hover:brightness-105'
+                  : 'bg-[#2e6c31] text-white hover:bg-[#255928]'
+              }`}
             >
               {t.aboutUnderstood}
             </button>
@@ -597,7 +627,13 @@ export default function App() {
       )}
       {/* Non-blocking status toast */}
       {statusToast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full bg-[#244927] text-[#c4fbb8] text-xs font-bold shadow-xl border border-[#a8f09b]/30 animate-in fade-in">
+        <div
+          className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full text-xs font-bold shadow-xl border animate-in fade-in ${
+            theme === 'dark'
+              ? 'bg-[#244927] text-[#c4fbb8] border-[#a8f09b]/30'
+              : 'bg-[#2e6c31] text-white border-[#1b4d1e]'
+          }`}
+        >
           {statusToast}
         </div>
       )}

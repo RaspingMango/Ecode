@@ -117,12 +117,18 @@ export function CodeColorPicker({
                           ? isDark
                             ? 'border-[#a8f09b] bg-[#394738]'
                             : 'border-[#2e6c31] bg-[#d8f3d2]'
-                          : 'border-white/[0.06] bg-[#282a2f]'
+                          : isDark
+                            ? 'border-white/[0.06] bg-[#282a2f]'
+                            : 'border-black/[0.08] bg-[#eef1ec]'
                       }`
                     : `px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 ${
                         isSelected
-                          ? 'bg-[#394738] text-[#a8f09b] ring-1 ring-[#a8f09b]'
-                          : 'bg-[#282a2f] text-[#c4c7c5] hover:text-[#e3e2e6]'
+                          ? isDark
+                            ? 'bg-[#394738] text-[#a8f09b] ring-1 ring-[#a8f09b]'
+                            : 'bg-[#e8f5e9] text-[#1b5e20] ring-1 ring-[#2e6c31]'
+                          : isDark
+                            ? 'bg-[#282a2f] text-[#c4c7c5] hover:text-[#e3e2e6]'
+                            : 'bg-[#eef1ec] text-[#404943] hover:text-[#191c19]'
                       }`
                 }
               >
@@ -278,9 +284,13 @@ export function CodeColorPicker({
         </div>
 
         {isLowContrast && (
-          <div className="px-3 py-2 rounded-2xl bg-amber-500/15 text-amber-300 border border-amber-500/25 text-[11px] flex items-center gap-2">
-            <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-400" />
-            <span className={isDark ? 'text-amber-200' : 'text-amber-900'}>
+          <div className={`px-3 py-2 rounded-2xl border text-[11px] flex items-center gap-2 ${
+            isDark
+              ? 'bg-amber-500/15 text-amber-200 border-amber-500/25'
+              : 'bg-amber-100 text-amber-900 border-amber-300'
+          }`}>
+            <AlertTriangle className={`w-3.5 h-3.5 shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-700'}`} />
+            <span>
               {t.lowContrastWarning}
             </span>
           </div>

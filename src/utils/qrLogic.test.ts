@@ -18,7 +18,7 @@ import {
 } from './qrLogic';
 import { scanBarcodeWithZxing, mapZxingFormatToCodeFormat, ZXing } from './qrScanner';
 import { hexToRgb, rgbToHex, normalizeHexColor, getColorContrastRatio } from './color';
-import { getLocalizedDetailKey, getLocalizedDetailValue, getLocalizedFolderName } from './i18n';
+import { getLocalizedDetailKey, getLocalizedDetailValue, getLocalizedFolderName, formatCodeCount } from './i18n';
 
 test('parseQrContent parses Wi-Fi payload correctly', () => {
   const raw = 'WIFI:S:Home_Network_5G;T:WPA;P:SuperSecret123;H:false;;';
@@ -243,5 +243,17 @@ test('getLocalizedFolderName translates stock names and preserves custom renames
   assert.equal(getLocalizedFolderName('tickets', 'Авиаперелёты', 'en'), 'Авиаперелёты');
   assert.equal(getLocalizedFolderName('folder-123', 'Путешествия', 'en'), 'Путешествия');
 });
+
+test('formatCodeCount handles Russian and English plural forms', () => {
+  assert.equal(formatCodeCount(0, 'ru'), '0 кодов');
+  assert.equal(formatCodeCount(1, 'ru'), '1 код');
+  assert.equal(formatCodeCount(2, 'ru'), '2 кода');
+  assert.equal(formatCodeCount(5, 'ru'), '5 кодов');
+  assert.equal(formatCodeCount(11, 'ru'), '11 кодов');
+  assert.equal(formatCodeCount(21, 'ru'), '21 код');
+  assert.equal(formatCodeCount(1, 'en'), '1 code');
+  assert.equal(formatCodeCount(3, 'en'), '3 codes');
+});
+
 
 

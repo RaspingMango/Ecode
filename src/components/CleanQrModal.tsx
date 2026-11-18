@@ -322,10 +322,14 @@ export function CleanQrModal({
                   playTapSound();
                   setShowTurnstile(true);
                 }}
-                className="absolute top-3.5 right-3.5 px-3 py-1.5 rounded-full bg-[#244927] hover:bg-[#2f5c33] text-[#c4fbb8] text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm active:scale-95"
+                className={`absolute top-3.5 right-3.5 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm active:scale-95 ${
+                  isDark
+                    ? 'bg-[#244927] hover:bg-[#2f5c33] text-[#c4fbb8]'
+                    : 'bg-[#e8f5e9] hover:bg-[#d7eed9] text-[#1b5e20]'
+                }`}
                 title={t.fullScreenTurnstile}
               >
-                <Maximize2 className="w-3.5 h-3.5 text-[#a8f09b]" />
+                <Maximize2 className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
                 <span>{t.fullScreenTurnstile}</span>
               </button>
 
@@ -353,7 +357,9 @@ export function CleanQrModal({
               </div>
 
               <div className="flex items-center gap-2 mt-2 flex-wrap justify-center">
-                <span className="text-[11px] font-bold text-[#a8f09b] bg-[#244927] px-3 py-0.5 rounded-full">
+                <span className={`text-[11px] font-bold px-3 py-0.5 rounded-full ${
+                  isDark ? 'text-[#a8f09b] bg-[#244927]' : 'text-[#1b5e20] bg-[#e8f5e9]'
+                }`}>
                   {t.vectorOriginalBadge}
                 </span>
                 <span className="text-[11px] text-[#8e918f]">
@@ -448,7 +454,9 @@ export function CleanQrModal({
                             }}
                             className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
                               activeFormat === fmt
-                                ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
+                                ? isDark
+                                  ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
+                                  : 'bg-[#2e6c31] text-white shadow-sm'
                                 : `bg-[#282a2f] text-[#c4c7c5] ${isDark ? 'hover:text-white' : 'hover:text-[#191c19]'}`
                             }`}
                           >
@@ -475,7 +483,9 @@ export function CleanQrModal({
                             }}
                             className={`py-2 rounded-full text-xs font-bold transition-colors ${
                               ecc === lvl
-                                ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
+                                ? isDark
+                                  ? 'bg-[#a8f09b] text-[#0b3810] shadow-sm'
+                                  : 'bg-[#2e6c31] text-white shadow-sm'
                                 : `bg-[#282a2f] text-[#c4c7c5] ${isDark ? 'hover:text-white' : 'hover:text-[#191c19]'}`
                             }`}
                           >
@@ -524,7 +534,11 @@ export function CleanQrModal({
                 </div>
               )}
 
-              <div className="p-3 rounded-2xl bg-[#121316] text-xs font-mono text-[#c4c7c5] break-all max-h-24 overflow-y-auto select-all border border-white/[0.04]">
+              <div className={`p-3 rounded-2xl text-xs font-mono break-all max-h-24 overflow-y-auto select-all border ${
+                isDark
+                  ? 'bg-[#121316] text-[#c4c7c5] border-white/[0.04]'
+                  : 'bg-[#eef1ec] text-[#191c19] border-black/[0.06]'
+              }`}>
                 {rawContent}
               </div>
 
@@ -534,9 +548,13 @@ export function CleanQrModal({
                   target="_blank"
                   rel="noreferrer"
                   onClick={playTapSound}
-                  className="w-full py-3 px-4 rounded-full bg-[#244927] hover:bg-[#2f5c33] text-[#c4fbb8] text-xs font-bold flex items-center justify-center gap-2 transition-colors active:scale-95 shadow-sm"
+                  className={`w-full py-3 px-4 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-colors active:scale-95 shadow-sm ${
+                    isDark
+                      ? 'bg-[#244927] hover:bg-[#2f5c33] text-[#c4fbb8]'
+                      : 'bg-[#e8f5e9] hover:bg-[#d7eed9] text-[#1b5e20]'
+                  }`}
                 >
-                  <ExternalLink className="w-4 h-4 text-[#a8f09b]" />
+                  <ExternalLink className={`w-4 h-4 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
                   <span>
                     {parsed.type === 'url' ? t.openInBrowser : t.executeAction}
                   </span>
@@ -560,12 +578,14 @@ export function CleanQrModal({
                   }}
                   className={`px-3 py-1.5 rounded-full transition-colors flex items-center gap-1.5 text-xs font-semibold ${
                     isFavorite
-                      ? 'bg-[#ffdcc2] text-[#2e1500]'
+                      ? isDark
+                        ? 'bg-[#ffdcc2] text-[#2e1500]'
+                        : 'bg-[#fef3c7] text-[#92400e]'
                       : 'bg-[#282a2f] text-[#8e918f] hover:text-[#e3e2e6]'
                   }`}
                   aria-label="Favorite"
                 >
-                  <Star className={`w-3.5 h-3.5 ${isFavorite ? 'fill-[#2e1500]' : ''}`} />
+                  <Star className={`w-3.5 h-3.5 ${isFavorite ? (isDark ? 'fill-[#2e1500]' : 'fill-[#92400e]') : ''}`} />
                   <span>{isFavorite ? t.inFavorites : t.addToFavorites}</span>
                 </button>
               </div>
@@ -631,9 +651,9 @@ export function CleanQrModal({
               onClick={handleSave}
               disabled={savedSuccess}
               className={`flex-1 py-3.5 px-6 rounded-full font-bold text-xs flex items-center justify-center gap-2 shadow-md active:scale-98 transition-all ${
-                savedSuccess
-                  ? 'bg-[#a8f09b] text-[#0b3810]'
-                  : 'bg-[#a8f09b] hover:brightness-105 text-[#0b3810]'
+                isDark
+                  ? 'bg-[#a8f09b] hover:brightness-105 text-[#0b3810]'
+                  : 'bg-[#2e6c31] hover:bg-[#255928] text-white'
               }`}
             >
               {savedSuccess ? (

@@ -318,8 +318,12 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark' }: Scann
           }}
           className={`flex-1 py-2 px-3 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-200 ${
             mode === 'camera'
-              ? 'bg-[#394738] text-[#a8f09b] shadow-sm font-bold'
-              : 'text-[#8e918f] hover:text-[#e3e2e6]'
+              ? isDark
+                ? 'bg-[#394738] text-[#a8f09b] shadow-sm font-bold'
+                : 'bg-[#e8f5e9] text-[#1b5e20] shadow-sm font-bold'
+              : isDark
+                ? 'text-[#8e918f] hover:text-[#e3e2e6]'
+                : 'text-[#575a56] hover:text-[#191c19]'
           }`}
           aria-label={t.modeCamera}
         >
@@ -334,8 +338,12 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark' }: Scann
           }}
           className={`flex-1 py-2 px-3 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-200 ${
             mode === 'screen'
-              ? 'bg-[#394738] text-[#a8f09b] shadow-sm font-bold'
-              : 'text-[#8e918f] hover:text-[#e3e2e6]'
+              ? isDark
+                ? 'bg-[#394738] text-[#a8f09b] shadow-sm font-bold'
+                : 'bg-[#e8f5e9] text-[#1b5e20] shadow-sm font-bold'
+              : isDark
+                ? 'text-[#8e918f] hover:text-[#e3e2e6]'
+                : 'text-[#575a56] hover:text-[#191c19]'
           }`}
           aria-label={t.modeScreen}
         >
@@ -350,8 +358,12 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark' }: Scann
           }}
           className={`flex-1 py-2 px-3 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-200 ${
             mode === 'file'
-              ? 'bg-[#394738] text-[#a8f09b] shadow-sm font-bold'
-              : 'text-[#8e918f] hover:text-[#e3e2e6]'
+              ? isDark
+                ? 'bg-[#394738] text-[#a8f09b] shadow-sm font-bold'
+                : 'bg-[#e8f5e9] text-[#1b5e20] shadow-sm font-bold'
+              : isDark
+                ? 'text-[#8e918f] hover:text-[#e3e2e6]'
+                : 'text-[#575a56] hover:text-[#191c19]'
           }`}
           aria-label={t.modeScreenshot}
         >
@@ -436,7 +448,9 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark' }: Scann
         {/* --- SCREEN CAPTURE INACTIVE STATE --- */}
         {mode === 'screen' && !isScanning && (
           <div className="p-6 flex flex-col items-center text-center max-w-sm space-y-4">
-            <div className="w-16 h-16 rounded-full bg-[#244927] flex items-center justify-center text-[#a8f09b] shadow-md">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-md ${
+              isDark ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
+            }`}>
               <Monitor className="w-8 h-8" />
             </div>
 
@@ -454,13 +468,19 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark' }: Scann
                 playTapSound();
                 startScreenCapture();
               }}
-              className="w-full py-3.5 px-6 rounded-full bg-[#a8f09b] hover:brightness-105 active:scale-95 text-[#0b3810] font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all"
+              className={`w-full py-3.5 px-6 rounded-full font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all active:scale-95 ${
+                isDark
+                  ? 'bg-[#a8f09b] hover:brightness-105 text-[#0b3810]'
+                  : 'bg-[#2e6c31] hover:bg-[#255928] text-white'
+              }`}
             >
-              <Play className="w-4 h-4 fill-[#0b3810]" />
+              <Play className="w-4 h-4 fill-current" />
               <span>{t.startScreenCapture}</span>
             </button>
 
-            <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#282a2f]/80 text-xs text-[#c4c7c5] text-left">
+            <div className={`flex items-start gap-2.5 p-3 rounded-2xl text-xs text-left ${
+              isDark ? 'bg-[#282a2f]/80 text-[#c4c7c5]' : 'bg-[#e8ece4] text-[#404943]'
+            }`}>
               <HelpCircle className={`w-4 h-4 shrink-0 mt-0.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
               <span>{t.screenModeTip}</span>
             </div>
@@ -470,7 +490,9 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark' }: Scann
         {/* --- FILE / SCREENSHOT / CLIPBOARD MODE --- */}
         {mode === 'file' && (
           <div className="p-6 flex flex-col items-center text-center w-full max-w-md space-y-4">
-            <div className="w-16 h-16 rounded-full bg-[#233549] flex items-center justify-center text-[#a8c7fa] shadow-md">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-md ${
+              isDark ? 'bg-[#233549] text-[#a8c7fa]' : 'bg-[#dbeafe] text-[#1d4ed8]'
+            }`}>
               <ImageIcon className="w-8 h-8" />
             </div>
 
@@ -530,7 +552,11 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark' }: Scann
                 playTapSound();
                 startCamera();
               }}
-              className="py-2.5 px-6 rounded-full bg-[#a8f09b] text-[#0b3810] font-bold text-xs hover:brightness-105 active:scale-95 transition-all shadow-sm"
+              className={`py-2.5 px-6 rounded-full font-bold text-xs active:scale-95 transition-all shadow-sm ${
+                isDark
+                  ? 'bg-[#a8f09b] text-[#0b3810] hover:brightness-105'
+                  : 'bg-[#2e6c31] text-white hover:bg-[#255928]'
+              }`}
             >
               {t.enableCamera}
             </button>
@@ -540,8 +566,12 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark' }: Scann
 
       {/* Error alert */}
       {errorMsg && (
-        <div className="p-3.5 rounded-2xl bg-[#371e1d] text-[#ffdad6] text-xs flex items-start gap-2.5 border border-[#ffb4ab]/20">
-          <AlertCircle className="w-4 h-4 shrink-0 text-[#ffb4ab] mt-0.5" />
+        <div className={`p-3.5 rounded-2xl text-xs flex items-start gap-2.5 border ${
+          isDark
+            ? 'bg-[#371e1d] text-[#ffdad6] border-[#ffb4ab]/20'
+            : 'bg-[#fde8e8] text-[#690005] border-[#b3261e]/20'
+        }`}>
+          <AlertCircle className={`w-4 h-4 shrink-0 mt-0.5 ${isDark ? 'text-[#ffb4ab]' : 'text-[#b3261e]'}`} />
           <div className="flex-1 leading-relaxed">{errorMsg}</div>
         </div>
       )}

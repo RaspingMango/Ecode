@@ -560,3 +560,16 @@ export function getLocalizedDetailValue(value: string, lang: Language): string {
   }
 }
 
+export function formatCodeCount(count: number, lang: Language): string {
+  if (lang === 'en') {
+    return count === 1 ? '1 code' : `${count} codes`;
+  }
+  const mod100 = count % 100;
+  const mod10 = count % 10;
+  if (mod100 >= 11 && mod100 <= 19) return `${count} кодов`;
+  if (mod10 === 1) return `${count} код`;
+  if (mod10 >= 2 && mod10 <= 4) return `${count} кода`;
+  return `${count} кодов`;
+}
+
+

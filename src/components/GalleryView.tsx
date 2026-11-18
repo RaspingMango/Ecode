@@ -26,7 +26,7 @@ import {
 } from '../utils/qrLogic';
 import { generateQrDataUrl } from '../utils/qrRenderer';
 import { playTapSound, triggerHaptic } from '../utils/audio';
-import { Language, TRANSLATIONS, getLocalizedFolderName } from '../utils/i18n';
+import { Language, TRANSLATIONS, getLocalizedFolderName, formatCodeCount } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
 import { getFolderIcon } from './FolderSelect';
 
@@ -212,7 +212,9 @@ export function GalleryView({
           <button
             onClick={() => setViewMode('grid')}
             className={`p-1.5 rounded-full transition-colors ${
-              viewMode === 'grid' ? 'bg-[#394738] text-[#a8f09b]' : 'text-[#8e918f]'
+              viewMode === 'grid'
+                ? isDark ? 'bg-[#394738] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
+                : 'text-[#8e918f]'
             }`}
             aria-label="Grid"
           >
@@ -221,7 +223,9 @@ export function GalleryView({
           <button
             onClick={() => setViewMode('list')}
             className={`p-1.5 rounded-full transition-colors ${
-              viewMode === 'list' ? 'bg-[#394738] text-[#a8f09b]' : 'text-[#8e918f]'
+              viewMode === 'list'
+                ? isDark ? 'bg-[#394738] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
+                : 'text-[#8e918f]'
             }`}
             aria-label="List"
           >
@@ -241,13 +245,17 @@ export function GalleryView({
             }}
             className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 shrink-0 ${
               selectedFolderId === 'all'
-                ? 'bg-[#a8f09b] text-[#0b3810] font-bold shadow-md'
+                ? isDark
+                  ? 'bg-[#a8f09b] text-[#0b3810] font-bold shadow-md'
+                  : 'bg-[#2e6c31] text-white font-bold shadow-md'
                 : 'bg-[#1e1f23] text-[#c4c7c5] hover:bg-[#282a2f] border border-white/[0.04]'
             }`}
           >
             <span>{t.allCodesChip}</span>
             <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-              selectedFolderId === 'all' ? 'bg-[#0b3810]/20 text-[#0b3810]' : 'bg-[#282a2f] text-[#8e918f]'
+              selectedFolderId === 'all'
+                ? isDark ? 'bg-[#0b3810]/20 text-[#0b3810]' : 'bg-white/20 text-white'
+                : 'bg-[#282a2f] text-[#8e918f]'
             }`}>
               {folderCounts.all}
             </span>
@@ -265,7 +273,7 @@ export function GalleryView({
                 : 'bg-[#1e1f23] text-[#c4c7c5] hover:bg-[#282a2f] border border-white/[0.04]'
             }`}
           >
-            <Star className={`w-3.5 h-3.5 ${selectedFolderId === 'favorites' ? 'fill-[#2e1500]' : 'fill-[#ffdcc2] text-[#ffdcc2]'}`} />
+            <Star className={`w-3.5 h-3.5 ${selectedFolderId === 'favorites' ? 'fill-[#2e1500]' : isDark ? 'fill-[#ffdcc2] text-[#ffdcc2]' : 'fill-[#d97706] text-[#d97706]'}`} />
             <span>{t.favoritesChip}</span>
             <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
               selectedFolderId === 'favorites' ? 'bg-[#2e1500]/20 text-[#2e1500]' : 'bg-[#282a2f] text-[#8e918f]'
@@ -288,7 +296,9 @@ export function GalleryView({
                 }}
                 className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 shrink-0 ${
                   isSelected
-                    ? 'bg-[#394738] text-[#a8f09b] font-bold shadow-md border border-[#a8f09b]/30'
+                    ? isDark
+                      ? 'bg-[#394738] text-[#a8f09b] font-bold shadow-md border border-[#a8f09b]/30'
+                      : 'bg-[#e8f5e9] text-[#1b5e20] font-bold shadow-sm border border-[#2e6c31]/30'
                     : 'bg-[#1e1f23] text-[#c4c7c5] hover:bg-[#282a2f] border border-white/[0.04]'
                 }`}
               >
@@ -297,7 +307,9 @@ export function GalleryView({
                 </span>
                 <span>{localizedName}</span>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                  isSelected ? 'bg-[#244927] text-[#c4fbb8]' : 'bg-[#282a2f] text-[#8e918f]'
+                  isSelected
+                    ? isDark ? 'bg-[#244927] text-[#c4fbb8]' : 'bg-[#2e6c31]/15 text-[#1b5e20]'
+                    : 'bg-[#282a2f] text-[#8e918f]'
                 }`}>
                   {count}
                 </span>
@@ -369,7 +381,11 @@ export function GalleryView({
                 playTapSound();
                 onNavigateToScan();
               }}
-              className="py-2.5 px-5 rounded-full bg-[#a8f09b] hover:brightness-105 active:scale-95 text-[#0b3810] font-bold text-xs transition-all shadow-sm"
+              className={`py-2.5 px-5 rounded-full active:scale-95 font-bold text-xs transition-all shadow-sm ${
+                isDark
+                  ? 'bg-[#a8f09b] hover:brightness-105 text-[#0b3810]'
+                  : 'bg-[#2e6c31] hover:bg-[#255928] text-white'
+              }`}
             >
               {t.scanFirstBtn}
             </button>
@@ -403,7 +419,7 @@ export function GalleryView({
             return (
               <div
                 key={item.id}
-                className="group relative bg-[#1e1f23] hover:bg-[#24262b] rounded-[24px] p-4 transition-all duration-200 shadow-md hover:shadow-xl flex flex-col justify-between border border-white/[0.04]"
+                className="group relative bg-[#1e1f23] hover:bg-[#24262b] rounded-[24px] p-4 transition-all duration-200 shadow-md hover:shadow-xl hover:-translate-y-0.5 flex flex-col justify-between border border-white/[0.04]"
               >
                 {/* Top Row: Folder Tag & Favorite Star */}
                 <div className="flex items-center justify-between mb-2.5">
@@ -426,7 +442,9 @@ export function GalleryView({
                     <Star
                       className={`w-4 h-4 ${
                         item.isFavorite
-                          ? 'fill-[#ffdcc2] text-[#ffdcc2]'
+                          ? isDark
+                            ? 'fill-[#ffdcc2] text-[#ffdcc2]'
+                            : 'fill-[#d97706] text-[#d97706]'
                           : 'text-[#8e918f]'
                       }`}
                     />
@@ -484,7 +502,9 @@ export function GalleryView({
                     )}
                     <div className="flex items-center flex-wrap gap-1.5 mt-2 text-[10px] text-[#8e918f]">
                       {is1DBarcodeFormat(item.codeFormat) && (
-                        <span className="px-2 py-0.5 rounded-md bg-[#244927] text-[#a8f09b] font-bold">
+                        <span className={`px-2 py-0.5 rounded-md font-bold ${
+                          isDark ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
+                        }`}>
                           {getBarcodeFormatLabel(item.codeFormat)}
                         </span>
                       )}
@@ -502,10 +522,14 @@ export function GalleryView({
                       playTapSound();
                       onOpenTurnstile(item);
                     }}
-                    className="py-1.5 px-3.5 rounded-full bg-[#244927] hover:bg-[#2f5c33] text-[#c4fbb8] text-xs font-semibold flex items-center gap-1.5 transition-colors active:scale-95 shadow-sm"
+                    className={`py-1.5 px-3.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors active:scale-95 shadow-sm ${
+                      isDark
+                        ? 'bg-[#244927] hover:bg-[#2f5c33] text-[#c4fbb8]'
+                        : 'bg-[#e8f5e9] hover:bg-[#d7eed9] text-[#1b5e20]'
+                    }`}
                     title={t.turnstileBtn}
                   >
-                    <Maximize2 className="w-3.5 h-3.5 text-[#a8f09b]" />
+                    <Maximize2 className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
                     <span>{t.turnstileBtn}</span>
                   </button>
 
@@ -540,7 +564,11 @@ export function GalleryView({
                                 setMovingItemId(null);
                               }}
                               className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs flex items-center gap-2 hover:bg-[#33353a] transition-colors ${
-                                item.folderId === f.id ? 'text-[#a8f09b] font-bold bg-[#394738]/50' : 'text-[#e3e2e6]'
+                                item.folderId === f.id
+                                  ? isDark
+                                    ? 'text-[#a8f09b] font-bold bg-[#394738]/50'
+                                    : 'text-[#1b5e20] font-bold bg-[#e8f5e9]'
+                                  : 'text-[#e3e2e6]'
                               }`}
                             >
                               <span className="shrink-0" style={{ color: f.color }}>
@@ -561,7 +589,11 @@ export function GalleryView({
                         setMovingItemId(null);
                         setItemToDelete(item);
                       }}
-                      className="w-8 h-8 rounded-full bg-[#282a2f] hover:bg-[#93000a] text-[#c4c7c5] hover:text-[#ffdad6] flex items-center justify-center transition-colors"
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                        isDark
+                          ? 'bg-[#282a2f] hover:bg-[#93000a] text-[#c4c7c5] hover:text-[#ffdad6]'
+                          : 'bg-[#eef1ec] hover:bg-[#fde8e8] text-[#404943] hover:text-[#b3261e]'
+                      }`}
                       title={t.deleteTooltip}
                       aria-label={`${t.deleteTooltip}: ${item.title}`}
                     >
@@ -576,9 +608,13 @@ export function GalleryView({
       )}
 
       {importError && (
-        <div className="p-3 rounded-2xl bg-[#371e1d] text-[#ffdad6] text-xs flex items-center justify-between gap-2 border border-[#ffb4ab]/20">
+        <div className={`p-3 rounded-2xl text-xs flex items-center justify-between gap-2 border ${
+          isDark
+            ? 'bg-[#371e1d] text-[#ffdad6] border-[#ffb4ab]/20'
+            : 'bg-[#fde8e8] text-[#690005] border-[#b3261e]/20'
+        }`}>
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-[#ffb4ab]" />
+            <AlertCircle className={`w-4 h-4 shrink-0 ${isDark ? 'text-[#ffb4ab]' : 'text-[#b3261e]'}`} />
             <span>{importError}</span>
           </div>
           <button
@@ -639,7 +675,9 @@ export function GalleryView({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#93000a]/25 text-[#ffb4ab] flex items-center justify-center shrink-0">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                isDark ? 'bg-[#93000a]/25 text-[#ffb4ab]' : 'bg-[#fde8e8] text-[#b3261e]'
+              }`}>
                 <Trash2 className="w-5 h-5" />
               </div>
               <div className="space-y-1 min-w-0">
@@ -675,7 +713,9 @@ export function GalleryView({
                   onDeleteItem(itemToDelete.id);
                   setItemToDelete(null);
                 }}
-                className="px-5 py-2.5 rounded-full bg-[#93000a] hover:brightness-110 active:scale-95 text-[#ffdad6] text-xs font-bold transition-all shadow-sm"
+                className={`px-5 py-2.5 rounded-full hover:brightness-110 active:scale-95 text-xs font-bold transition-all shadow-sm ${
+                  isDark ? 'bg-[#93000a] text-[#ffdad6]' : 'bg-[#b3261e] text-white'
+                }`}
               >
                 {t.deleteBtn}
               </button>
@@ -808,7 +848,7 @@ export function GalleryView({
                           {localizedName}
                         </div>
                         <div className={`text-[10px] ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
-                          {count} {t.folderItemsCount}
+                          {formatCodeCount(count, lang)}
                         </div>
                       </div>
                     </div>
@@ -863,7 +903,11 @@ export function GalleryView({
                   setManageFoldersOpen(false);
                   onOpenCreateFolder();
                 }}
-                className="flex-1 py-3 px-4 rounded-full bg-[#a8f09b] hover:brightness-105 text-[#0b3810] font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95"
+                className={`flex-1 py-3 px-4 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 ${
+                  isDark
+                    ? 'bg-[#a8f09b] hover:brightness-105 text-[#0b3810]'
+                    : 'bg-[#2e6c31] hover:bg-[#255928] text-white'
+                }`}
               >
                 <Plus className="w-4 h-4" />
                 <span>{t.newFolderChip}</span>

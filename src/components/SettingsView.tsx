@@ -6,15 +6,12 @@ import {
   Volume2,
   VolumeX,
   Vibrate,
-  Smartphone,
   Download,
   Upload,
   RotateCcw,
-  Sparkles,
   QrCode,
   Check,
   CheckCircle2,
-  FolderSync,
   Info,
   AlertCircle,
   Github,
@@ -324,7 +321,9 @@ export function SettingsView({
         </div>
 
         {/* Haptic Toggle */}
-        <div className="flex items-center justify-between py-1 pt-2 border-t border-black/[0.04] dark:border-white/[0.04]">
+        <div className={`flex items-center justify-between py-1 pt-2 border-t ${
+          isDark ? 'border-white/[0.04]' : 'border-black/[0.06]'
+        }`}>
           <div className="flex items-center gap-3">
             <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
               hapticEnabled
@@ -403,7 +402,7 @@ export function SettingsView({
           isDark ? 'bg-[#282a2f] hover:bg-[#33353a]' : 'bg-[#f2f4ef] hover:bg-[#eaece6]'
         }`}>
           <div className="flex items-center gap-3">
-            <Upload className="w-4 h-4 text-[#a8c7fa]" />
+            <Upload className={`w-4 h-4 ${isDark ? 'text-[#a8c7fa]' : 'text-[#1d4ed8]'}`} />
             <div className="text-left">
               <div className="text-xs font-semibold">{t.restoreDataTitle}</div>
               <p className={`text-[10px] ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
@@ -442,15 +441,23 @@ export function SettingsView({
         </button>
 
         {importError && (
-          <div className="p-3 rounded-2xl bg-[#371e1d] text-[#ffdad6] text-xs flex items-center gap-2 border border-[#ffb4ab]/20">
-            <AlertCircle className="w-4 h-4 shrink-0 text-[#ffb4ab]" />
+          <div className={`p-3 rounded-2xl text-xs flex items-center gap-2 border ${
+            isDark
+              ? 'bg-[#371e1d] text-[#ffdad6] border-[#ffb4ab]/20'
+              : 'bg-[#fde8e8] text-[#690005] border-[#b3261e]/20'
+          }`}>
+            <AlertCircle className={`w-4 h-4 shrink-0 ${isDark ? 'text-[#ffb4ab]' : 'text-[#b3261e]'}`} />
             <span>{importError}</span>
           </div>
         )}
 
         {resetSuccess && (
-          <div className="p-3 rounded-2xl bg-[#244927] text-[#c4fbb8] text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-            <CheckCircle2 className="w-4 h-4 text-[#a8f09b]" />
+          <div className={`p-3 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-in fade-in ${
+            isDark
+              ? 'bg-[#244927] text-[#c4fbb8]'
+              : 'bg-[#e8f5e9] text-[#1b5e20]'
+          }`}>
+            <CheckCircle2 className={`w-4 h-4 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
             <span>{t.resetSuccess}</span>
           </div>
         )}
@@ -528,7 +535,9 @@ export function SettingsView({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#93000a]/25 text-[#ffb4ab] flex items-center justify-center shrink-0">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                isDark ? 'bg-[#93000a]/25 text-[#ffb4ab]' : 'bg-[#fde8e8] text-[#b3261e]'
+              }`}>
                 <RotateCcw className="w-5 h-5" />
               </div>
               <div className="space-y-1">
@@ -555,7 +564,9 @@ export function SettingsView({
               <button
                 type="button"
                 onClick={executeResetDemoData}
-                className="px-5 py-2.5 rounded-full bg-[#93000a] hover:brightness-110 active:scale-95 text-[#ffdad6] text-xs font-bold transition-all shadow-sm"
+                className={`px-5 py-2.5 rounded-full hover:brightness-110 active:scale-95 text-xs font-bold transition-all shadow-sm ${
+                  isDark ? 'bg-[#93000a] text-[#ffdad6]' : 'bg-[#b3261e] text-white'
+                }`}
               >
                 {t.resetDemoTitle}
               </button>

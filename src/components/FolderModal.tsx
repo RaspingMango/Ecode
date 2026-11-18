@@ -158,7 +158,11 @@ export function FolderModal({
                   : 'bg-[#eef1ec] text-[#191c19] placeholder:text-[#575a56] focus:ring-[#2e6c31]'
               }`}
             />
-            {error && <p className="text-[#ffb4ab] text-xs mt-1.5">{error}</p>}
+            {error && (
+              <p className={`text-xs mt-1.5 ${isDark ? 'text-[#ffb4ab]' : 'text-[#b3261e]'}`}>
+                {error}
+              </p>
+            )}
           </div>
 
           {/* Folder Icon Picker */}
@@ -265,7 +269,11 @@ export function FolderModal({
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 px-4 rounded-full bg-[#a8f09b] hover:brightness-105 text-[#0b3810] font-bold text-xs shadow-md transition-all active:scale-95"
+              className={`flex-1 py-3 px-4 rounded-full font-bold text-xs shadow-md transition-all active:scale-95 ${
+                isDark
+                  ? 'bg-[#a8f09b] hover:brightness-105 text-[#0b3810]'
+                  : 'bg-[#2e6c31] hover:bg-[#255928] text-white'
+              }`}
             >
               {t.saveFolderBtn}
             </button>
