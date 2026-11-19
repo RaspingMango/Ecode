@@ -41,6 +41,13 @@ import {
 } from './utils/storage';
 import { playTapSound, triggerHaptic } from './utils/audio';
 import { saveFileToDevice } from './utils/nativeFiles';
+import {
+  addQuickActionListener,
+  consumePendingQuickAction,
+  isQuickTilesNativePlatform,
+  type QuickActionRequest,
+  type QuickActionType,
+} from './utils/quickActions';
 import { Language, TRANSLATIONS, getInitialLanguage, saveLanguagePreference } from './utils/i18n';
 import { ThemeMode, getInitialTheme, applyTheme } from './utils/theme';
 
@@ -81,9 +88,11 @@ export default function App() {
 
   // Non-blocking status toast (replaces window.alert)
   const [statusToast, setStatusToast] = useState<string | null>(null);
+  const [quickActionRequest, setQuickActionRequest] = useState<QuickActionRequest | null>(null);
   const logoTapCountRef = useRef(0);
   const logoTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const quickActionNonceRef = useRef(0);
 
   // Save items and folders on change
   useEffect(() => {
@@ -102,6 +111,57 @@ export default function App() {
     return () => {
       if (logoTapTimerRef.current) clearTimeout(logoTapTimerRef.current);
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isQuickTilesNativePlatform()) return;
+    let disposed = false;
+    let listenerHandle: { remove: () => Promise<void> } | null = null;
+
+    const triggerAction = (action: QuickActionType) => {
+      if (disposed) return;
+      quickActionNonceRef.current += 1;
+      setCleanModalOpen(false);
+      setTurnstileModalOpen(false);
+      setFolderModalOpen(false);
+      setAboutOpen(false);
+      setActiveTab('scanner');
+      setQuickActionRequest({ action, nonce: quickActionNonceRef.current });
+    };
+
+    const checkPending = async () => {
+      const pending = await consumePendingQuickAction();
+      if (!disposed && pending) {
+        triggerAction(pending.action);
+      }
+    };
+
+    const setup = async () => {
+      listenerHandle = await addQuickActionListener((event) => {
+        triggerAction(event.action);
+      });
+      await checkPending();
+    };
+
+    void setup();
+
+    const handleResumeCheck = () => {
+      if (document.visibilityState === 'visible') {
+        void checkPending();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleResumeCheck);
+    window.addEventListener('focus', handleResumeCheck);
+
+    return () => {
+      disposed = true;
+      document.removeEventListener('visibilitychange', handleResumeCheck);
+      window.removeEventListener('focus', handleResumeCheck);
+      if (listenerHandle) {
+        void listenerHandle.remove();
+      }
     };
   }, []);
 
@@ -349,7 +409,16 @@ export default function App() {
       {/* Main Screen Content View */}
       <main className="flex-1 pb-32 pt-2">
         {activeTab === 'scanner' && (
-          <ScannerView onQrDetected={handleQrDetected} lang={lang} theme={theme} demoMode={demoMode} />
+          <ScannerView
+            onQrDetected={handleQrDetected}
+            lang={lang}
+            theme={theme}
+            demoMode={demoMode}
+            quickActionRequest={quickActionRequest}
+            onQuickActionHandled={(nonce) => {
+              setQuickActionRequest((prev) => (prev && prev.nonce === nonce ? null : prev));
+            }}
+          />
         )}
 
         {activeTab === 'gallery' && (
@@ -410,6 +479,7 @@ export default function App() {
             onExportBackup={handleExportBackup}
             onImportBackup={handleImportBackup}
             onOpenAbout={() => setAboutOpen(true)}
+            onShowToast={showToast}
           />
         )}
       </main>
@@ -628,7 +698,7 @@ export default function App() {
                   <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                     theme === 'dark' ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
                   }`}>
-                    v1.3.3
+                    v1.3.4
                   </span>
                 </div>
               </div>

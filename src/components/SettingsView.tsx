@@ -15,10 +15,19 @@ import {
   Github,
   ExternalLink,
   Hash,
+  Camera,
+  Monitor,
+  Pin,
 } from 'lucide-react';
 import { Language, TRANSLATIONS } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
 import { playTapSound, triggerHaptic } from '../utils/audio';
+import {
+  isQuickTilesNativePlatform,
+  requestPinQuickTile,
+  buildTilePinOutcomeMessage,
+  type QuickActionType,
+} from '../utils/quickActions';
 
 interface SettingsViewProps {
   lang: Language;
@@ -34,6 +43,7 @@ interface SettingsViewProps {
   onExportBackup: () => void;
   onImportBackup: (items: any[]) => void;
   onOpenAbout: () => void;
+  onShowToast?: (message: string) => void;
 }
 
 export function SettingsView({
@@ -50,9 +60,24 @@ export function SettingsView({
   onExportBackup,
   onImportBackup,
   onOpenAbout,
+  onShowToast,
 }: SettingsViewProps) {
   const t = TRANSLATIONS[lang];
   const [importError, setImportError] = useState<string | null>(null);
+  const [pinningTile, setPinningTile] = useState<QuickActionType | null>(null);
+  const isNativeAndroid = isQuickTilesNativePlatform();
+
+  const handlePinQuickTile = async (tile: QuickActionType) => {
+    playTapSound();
+    triggerHaptic(15);
+    setPinningTile(tile);
+    try {
+      const status = await requestPinQuickTile(tile);
+      onShowToast?.(buildTilePinOutcomeMessage(status, lang));
+    } finally {
+      setPinningTile(null);
+    }
+  };
 
   const handleLangSelect = (selectedLang: Language) => {
     playTapSound();
@@ -462,6 +487,91 @@ export function SettingsView({
         )}
       </div>
 
+      {/* 4.5. Android Quick Settings Tiles */}
+      {isNativeAndroid && (
+        <div className={`rounded-[28px] p-5 shadow-xl transition-colors duration-200 border space-y-3 ${
+          isDark ? 'bg-[#1e1f23] border-white/[0.04]' : 'bg-white border-black/[0.06] shadow-sm'
+        }`}>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Pin className={`w-4 h-4 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
+              <h3 className="font-bold text-sm tracking-tight">
+                {t.quickTilesSection}
+              </h3>
+            </div>
+            <p className={`text-[11px] leading-relaxed ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
+              {t.quickTilesDesc}
+            </p>
+          </div>
+
+          <div className="space-y-2.5">
+            <div className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 ${
+              isDark ? 'bg-[#282a2f]' : 'bg-[#f2f4ef]'
+            }`}>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+                  isDark ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
+                }`}>
+                  <Camera className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold truncate">{t.pinCameraTileTitle}</div>
+                  <p className={`text-[10px] leading-snug ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
+                    {t.pinCameraTileDesc}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={pinningTile !== null}
+                onClick={() => void handlePinQuickTile('camera')}
+                className={`px-3.5 py-2 rounded-full text-xs font-bold shrink-0 transition-all active:scale-95 ${
+                  isDark
+                    ? 'bg-[#a8f09b] text-[#0b3810] hover:brightness-105'
+                    : 'bg-[#2e6c31] text-white hover:bg-[#255928]'
+                }`}
+              >
+                {t.pinTileBtn}
+              </button>
+            </div>
+
+            <div className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 ${
+              isDark ? 'bg-[#282a2f]' : 'bg-[#f2f4ef]'
+            }`}>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+                  isDark ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
+                }`}>
+                  <Monitor className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold truncate">{t.pinScreenTileTitle}</div>
+                  <p className={`text-[10px] leading-snug ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
+                    {t.pinScreenTileDesc}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={pinningTile !== null}
+                onClick={() => void handlePinQuickTile('screen')}
+                className={`px-3.5 py-2 rounded-full text-xs font-bold shrink-0 transition-all active:scale-95 ${
+                  isDark
+                    ? 'bg-[#a8f09b] text-[#0b3810] hover:brightness-105'
+                    : 'bg-[#2e6c31] text-white hover:bg-[#255928]'
+                }`}
+              >
+                {t.pinTileBtn}
+              </button>
+            </div>
+          </div>
+
+          <p className={`text-[10px] leading-relaxed ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
+            {t.quickTilesManualHint}
+          </p>
+        </div>
+      )}
+
       {/* 5. App Info Card */}
       <div className={`rounded-[28px] p-5 shadow-xl transition-colors duration-200 border space-y-3 ${
         isDark ? 'bg-[#1e1f23] border-white/[0.04]' : 'bg-white border-black/[0.06] shadow-sm'
@@ -471,7 +581,7 @@ export function SettingsView({
             <Info className={`w-5 h-5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
             <div>
               <div className="text-xs font-bold">
-                Ecode • {t.appVersion} 1.3.3
+                Ecode • {t.appVersion} 1.3.4
               </div>
               <p className={`text-[10px] ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
                 Offline First • Private

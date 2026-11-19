@@ -18,19 +18,45 @@ import { scanImageData, scanImageFile } from '../utils/qrScanner';
 import type { CodeFormat } from '../utils/qrLogic';
 import { playScanSuccessSound, playTapSound, triggerHaptic } from '../utils/audio';
 import { readClipboardImageFromDevice } from '../utils/nativeFiles';
+import {
+  isNativeScreenCapturePlatform,
+  startNativeScreenCapture,
+  stopNativeScreenCapture,
+  getNativeScreenCaptureStatus,
+  consumePendingScreenDetection,
+  addScreenCodeDetectedListener,
+  addScreenCaptureStateListener,
+  mapNativeCodeFormat,
+  shouldAcceptDetectedCode,
+  type ScreenCaptureDetection,
+} from '../utils/screenCapture';
 import { Language, TRANSLATIONS } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
+import {
+  resolveScannerModeFromQuickAction,
+  shouldAutoStartScreenFromQuickAction,
+  type QuickActionRequest,
+} from '../utils/quickActions';
 
 interface ScannerViewProps {
   onQrDetected: (rawText: string, source: 'camera' | 'screen' | 'file', codeFormat?: CodeFormat) => void;
   lang?: Language;
   theme?: ThemeMode;
   demoMode?: boolean;
+  quickActionRequest?: QuickActionRequest | null;
+  onQuickActionHandled?: (nonce: number) => void;
 }
 
 type ScanMode = 'camera' | 'screen' | 'file';
 
-export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark', demoMode = false }: ScannerViewProps) {
+export function ScannerView({
+  onQrDetected,
+  lang = 'ru',
+  theme = 'dark',
+  demoMode = false,
+  quickActionRequest = null,
+  onQuickActionHandled,
+}: ScannerViewProps) {
   const isDark = theme === 'dark';
   const t = TRANSLATIONS[lang];
   const [mode, setMode] = useState<ScanMode>('camera');
@@ -46,8 +72,35 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark', demoMod
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animFrameIdRef = useRef<number | null>(null);
   const lastScanTimestampRef = useRef<number>(0);
+  const nativeScreenActiveRef = useRef<boolean>(false);
+  const lastNativeDetectionRef = useRef<{ key: string | null; at: number }>({ key: null, at: 0 });
+  const lastHandledQuickNonceRef = useRef<number | null>(null);
+  const pendingAutoScreenStartRef = useRef<boolean>(false);
+  const isNativeScreen = isNativeScreenCapturePlatform();
 
-  // Stop active video media streams
+  const deliverNativeDetection = useCallback(
+    (detection: ScreenCaptureDetection | null) => {
+      if (!detection) return;
+      const now = Date.now();
+      const check = shouldAcceptDetectedCode(
+        detection,
+        lastNativeDetectionRef.current.key,
+        lastNativeDetectionRef.current.at,
+        now
+      );
+      if (!check.accept) return;
+
+      lastNativeDetectionRef.current = { key: check.key, at: now };
+      nativeScreenActiveRef.current = false;
+      setIsScanning(false);
+      playScanSuccessSound();
+      triggerHaptic([40, 30, 80]);
+      onQrDetected(detection.data, 'screen', mapNativeCodeFormat(detection.format));
+    },
+    [onQrDetected]
+  );
+
+  // Stop active video media streams or native screen capture
   const stopCurrentStream = useCallback(() => {
     if (animFrameIdRef.current) {
       cancelAnimationFrame(animFrameIdRef.current);
@@ -59,6 +112,10 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark', demoMod
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
+    }
+    if (nativeScreenActiveRef.current) {
+      nativeScreenActiveRef.current = false;
+      void stopNativeScreenCapture();
     }
     setIsScanning(false);
     setTorchEnabled(false);
@@ -155,10 +212,37 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark', demoMod
     }
   }, [facingMode, lang, processVideoFrame, stopCurrentStream, t.cameraNotFound]);
 
-  // Start Screen Capture Stream
+  // Start Screen Capture Stream (Native Android MediaProjection or Browser getDisplayMedia)
   const startScreenCapture = useCallback(async () => {
     stopCurrentStream();
     setErrorMsg(null);
+
+    if (isNativeScreen) {
+      try {
+        const res = await startNativeScreenCapture({
+          notifTitle: t.screenNotifTitle,
+          notifText: t.screenNotifText,
+          notifStop: t.screenNotifStop,
+          detectedTitle: t.screenDetectedTitle,
+          detectedText: t.screenDetectedText,
+        });
+        if (res?.cancelled) {
+          nativeScreenActiveRef.current = false;
+          setIsScanning(false);
+          return;
+        }
+        if (res?.started) {
+          nativeScreenActiveRef.current = true;
+          setIsScanning(true);
+        }
+      } catch (err: any) {
+        console.warn('Native Android screen capture error:', err);
+        setErrorMsg((lang === 'ru' ? 'Не удалось запустить захват экрана: ' : 'Failed to start screen capture: ') + (err?.message || 'Error'));
+        nativeScreenActiveRef.current = false;
+        setIsScanning(false);
+      }
+      return;
+    }
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
       setErrorMsg(lang === 'ru'
@@ -194,21 +278,133 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark', demoMod
       }
       setIsScanning(false);
     }
-  }, [lang, processVideoFrame, stopCurrentStream]);
+  }, [
+    isNativeScreen,
+    lang,
+    processVideoFrame,
+    stopCurrentStream,
+    t.screenDetectedText,
+    t.screenDetectedTitle,
+    t.screenNotifStop,
+    t.screenNotifText,
+    t.screenNotifTitle,
+  ]);
+
+  useEffect(() => {
+    if (!isNativeScreen) return;
+    let disposed = false;
+    const handles: Array<{ remove: () => Promise<void> }> = [];
+
+    const checkPendingAndStatus = async () => {
+      const pending = await consumePendingScreenDetection();
+      if (!disposed && pending) {
+        deliverNativeDetection(pending);
+        return;
+      }
+      const capturing = await getNativeScreenCaptureStatus();
+      if (!disposed) {
+        nativeScreenActiveRef.current = capturing;
+        if (mode === 'screen') {
+          setIsScanning(capturing);
+        }
+      }
+    };
+
+    const setupListeners = async () => {
+      const detectedHandle = await addScreenCodeDetectedListener((event) => {
+        if (!disposed) {
+          deliverNativeDetection(event);
+        }
+      });
+      if (detectedHandle) handles.push(detectedHandle);
+
+      const stateHandle = await addScreenCaptureStateListener((state) => {
+        if (disposed) return;
+        nativeScreenActiveRef.current = Boolean(state.capturing);
+        if (!state.capturing && mode === 'screen') {
+          setIsScanning(false);
+        }
+      });
+      if (stateHandle) handles.push(stateHandle);
+
+      await checkPendingAndStatus();
+    };
+
+    void setupListeners();
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        void checkPendingAndStatus();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+
+    return () => {
+      disposed = true;
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      handles.forEach((h) => {
+        void h.remove();
+      });
+    };
+  }, [deliverNativeDetection, isNativeScreen, mode]);
 
   useEffect(() => {
     if (mode === 'camera') {
       startCamera();
     } else if (mode === 'screen') {
       stopCurrentStream();
+      setErrorMsg(null);
+      if (pendingAutoScreenStartRef.current) {
+        pendingAutoScreenStartRef.current = false;
+        void startScreenCapture();
+      }
     } else if (mode === 'file') {
       stopCurrentStream();
+      setErrorMsg(null);
     }
 
     return () => {
       stopCurrentStream();
     };
-  }, [mode, startCamera, stopCurrentStream]);
+  }, [mode, startCamera, startScreenCapture, stopCurrentStream]);
+
+  useEffect(() => {
+    if (!quickActionRequest) return;
+    if (lastHandledQuickNonceRef.current === quickActionRequest.nonce) return;
+
+    const targetMode = resolveScannerModeFromQuickAction(quickActionRequest.action);
+    if (!targetMode) return;
+
+    lastHandledQuickNonceRef.current = quickActionRequest.nonce;
+    setErrorMsg(null);
+
+    if (targetMode === 'camera') {
+      pendingAutoScreenStartRef.current = false;
+      if (mode === 'camera') {
+        if (!isScanning) {
+          void startCamera();
+        }
+      } else {
+        setMode('camera');
+      }
+    } else if (targetMode === 'screen') {
+      const autoStart = shouldAutoStartScreenFromQuickAction(quickActionRequest.action);
+      if (mode === 'screen') {
+        pendingAutoScreenStartRef.current = false;
+        if (autoStart && !isScanning) {
+          void startScreenCapture();
+        }
+      } else {
+        pendingAutoScreenStartRef.current = autoStart;
+        setMode('screen');
+      }
+    }
+
+    onQuickActionHandled?.(quickActionRequest.nonce);
+  }, [isScanning, mode, onQuickActionHandled, quickActionRequest, startCamera, startScreenCapture]);
 
   const toggleTorch = async () => {
     playTapSound();
@@ -382,8 +578,8 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark', demoMod
           }`}
         />
 
-        {/* --- CAMERA & ACTIVE SCREEN STREAM OVERLAY --- */}
-        {isScanning && (
+        {/* --- CAMERA & DESKTOP ACTIVE SCREEN STREAM OVERLAY --- */}
+        {isScanning && !(mode === 'screen' && isNativeScreen) && (
           <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-between p-6">
             <div className="px-4 py-1.5 rounded-full bg-[#1e1f23]/90 backdrop-blur-md border border-white/[0.08] flex items-center gap-2 text-xs font-semibold text-[#a8f09b]">
               <span className="w-2 h-2 rounded-full bg-[#a8f09b] animate-ping" />
@@ -444,6 +640,35 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark', demoMod
           </div>
         )}
 
+        {/* --- NATIVE ANDROID ACTIVE SCREEN CAPTURE STATE --- */}
+        {mode === 'screen' && isScanning && isNativeScreen && (
+          <div className="p-6 flex flex-col items-center text-center max-w-sm space-y-5">
+            <div className="px-4 py-1.5 rounded-full bg-[#244927]/80 border border-[#a8f09b]/30 flex items-center gap-2 text-xs font-semibold text-[#a8f09b]">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#a8f09b] animate-ping" />
+              <span>{t.scanningScreenNativeTitle}</span>
+            </div>
+
+            <div className="w-16 h-16 rounded-full bg-[#244927] text-[#a8f09b] flex items-center justify-center shadow-lg">
+              <Monitor className="w-8 h-8 animate-pulse" />
+            </div>
+
+            <p className="text-xs text-[#c4c7c5] leading-relaxed">
+              {t.scanningScreenNativeDesc}
+            </p>
+
+            <button
+              onClick={() => {
+                playTapSound();
+                stopCurrentStream();
+              }}
+              className="w-full py-3.5 px-6 rounded-full bg-[#93000a] text-[#ffdad6] font-bold text-sm flex items-center justify-center gap-2 shadow-lg hover:brightness-110 active:scale-95 transition-all"
+            >
+              <Square className="w-4 h-4 fill-[#ffdad6]" />
+              <span>{t.stopScreenCapture}</span>
+            </button>
+          </div>
+        )}
+
         {/* --- SCREEN CAPTURE INACTIVE STATE --- */}
         {mode === 'screen' && !isScanning && (
           <div className="p-6 flex flex-col items-center text-center max-w-sm space-y-4">
@@ -474,14 +699,14 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark', demoMod
               }`}
             >
               <Play className="w-4 h-4 fill-current" />
-              <span>{t.startScreenCapture}</span>
+              <span>{isNativeScreen ? t.startScreenCaptureNative : t.startScreenCapture}</span>
             </button>
 
             <div className={`flex items-start gap-2.5 p-3 rounded-2xl text-xs text-left ${
               isDark ? 'bg-[#282a2f]/80 text-[#c4c7c5]' : 'bg-[#e8ece4] text-[#404943]'
             }`}>
               <HelpCircle className={`w-4 h-4 shrink-0 mt-0.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
-              <span>{t.screenModeTip}</span>
+              <span>{isNativeScreen ? t.screenModeTipNative : t.screenModeTip}</span>
             </div>
           </div>
         )}

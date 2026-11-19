@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="quick_tile_camera">Ecode: Камера</string>
+    <string name="quick_tile_camera_sub">Скан QR и штрихкодов</string>
+    <string name="quick_tile_screen">Ecode: Экран</string>
+    <string name="quick_tile_screen_sub">Захват экрана</string>
+    <string name="quick_tile_screen_active">Сканирование экрана…</string>
+</resources>

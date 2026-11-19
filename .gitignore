@@ -14,3 +14,7 @@ android/*/build/
 android/local.properties
 *.apk
 
+# Uploaded chat screenshots
+public/assets/aistudio/
+
+

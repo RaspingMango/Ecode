@@ -24,6 +24,17 @@ import { hexToRgb, rgbToHex, normalizeHexColor, getColorContrastRatio } from './
 import { getLocalizedDetailKey, getLocalizedDetailValue, getLocalizedFolderName, formatCodeCount } from './i18n';
 import { sanitizeShareFileName, extractPngBase64 } from './share';
 import { sanitizeDownloadFileName, utf8ToBase64 } from './nativeFiles';
+import {
+  mapNativeCodeFormat,
+  shouldAcceptDetectedCode,
+  shouldUseNativeScreenCapture,
+} from './screenCapture';
+import {
+  normalizeQuickAction,
+  resolveScannerModeFromQuickAction,
+  shouldAutoStartScreenFromQuickAction,
+  buildTilePinOutcomeMessage,
+} from './quickActions';
 
 test('parseQrContent parses Wi-Fi payload correctly', () => {
   const raw = 'WIFI:S:Home_Network_5G;T:WPA;P:SuperSecret123;H:false;;';
@@ -333,6 +344,53 @@ test('download helpers sanitize filenames and encode UTF-8 SVG/JSON cleanly to b
   const encoded = utf8ToBase64(svg);
   assert.equal(Buffer.from(encoded, 'base64').toString('utf8'), svg);
 });
+
+test('screen capture helpers map native ZXing formats, route platform cleanly, and deduplicate detections', () => {
+  assert.equal(shouldUseNativeScreenCapture(true), true);
+  assert.equal(shouldUseNativeScreenCapture(false), false);
+
+  assert.equal(mapNativeCodeFormat('QR_CODE'), 'QR_CODE');
+  assert.equal(mapNativeCodeFormat('ean_13'), 'EAN_13');
+  assert.equal(mapNativeCodeFormat('CODE_128'), 'CODE_128');
+  assert.equal(mapNativeCodeFormat('AZTEC'), 'QR_CODE');
+  assert.equal(mapNativeCodeFormat(undefined), 'QR_CODE');
+
+  const first = shouldAcceptDetectedCode({ data: 'https://ecode.app', format: 'QR_CODE' }, null, 0, 1000);
+  assert.equal(first.accept, true);
+  assert.equal(first.key, 'QR_CODE::https://ecode.app');
+
+  const dup = shouldAcceptDetectedCode({ data: 'https://ecode.app', format: 'QR_CODE' }, first.key, 1000, 1500);
+  assert.equal(dup.accept, false);
+
+  const afterWindow = shouldAcceptDetectedCode({ data: 'https://ecode.app', format: 'QR_CODE' }, first.key, 1000, 3500);
+  assert.equal(afterWindow.accept, true);
+
+  const empty = shouldAcceptDetectedCode({ data: '   ', format: 'QR_CODE' }, first.key, 1000, 1500);
+  assert.equal(empty.accept, false);
+});
+
+test('quick action helpers normalize intents, map scanner modes, and format tile pin outcomes', () => {
+  assert.equal(normalizeQuickAction('camera'), 'camera');
+  assert.equal(normalizeQuickAction('com.raspingmango.ecode.action.QUICK_SCAN_CAMERA'), 'camera');
+  assert.equal(normalizeQuickAction('screen'), 'screen');
+  assert.equal(normalizeQuickAction('com.raspingmango.ecode.action.QUICK_SCAN_SCREEN'), 'screen');
+  assert.equal(normalizeQuickAction('unknown'), null);
+  assert.equal(normalizeQuickAction(undefined), null);
+
+  assert.equal(resolveScannerModeFromQuickAction('camera'), 'camera');
+  assert.equal(resolveScannerModeFromQuickAction('screen'), 'screen');
+  assert.equal(resolveScannerModeFromQuickAction(null), null);
+
+  assert.equal(shouldAutoStartScreenFromQuickAction('screen'), true);
+  assert.equal(shouldAutoStartScreenFromQuickAction('camera'), false);
+  assert.equal(shouldAutoStartScreenFromQuickAction(null), false);
+
+  assert.match(buildTilePinOutcomeMessage('added', 'ru'), /закреплена/i);
+  assert.match(buildTilePinOutcomeMessage('already_added', 'en'), /already/i);
+  assert.match(buildTilePinOutcomeMessage('unsupported', 'ru'), /шторку/i);
+  assert.match(buildTilePinOutcomeMessage('dismissed', 'en'), /cancelled/i);
+});
+
 
 
 

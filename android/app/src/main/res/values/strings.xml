@@ -4,4 +4,9 @@
     <string name="title_activity_main">Ecode</string>
     <string name="package_name">com.raspingmango.ecode</string>
     <string name="custom_url_scheme">com.raspingmango.ecode</string>
+    <string name="quick_tile_camera">Ecode: Camera</string>
+    <string name="quick_tile_camera_sub">Scan QR / barcode</string>
+    <string name="quick_tile_screen">Ecode: Screen</string>
+    <string name="quick_tile_screen_sub">Scan from screen</string>
+    <string name="quick_tile_screen_active">Scanning screen…</string>
 </resources>
