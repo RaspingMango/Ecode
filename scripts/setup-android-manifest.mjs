@@ -41,7 +41,7 @@ if (changed) {
 // Sync versionName in android/app/build.gradle with package.json version when present
 if (fs.existsSync(buildGradlePath) && fs.existsSync(pkgPath)) {
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-  const appVersion = typeof pkg.version === 'string' && pkg.version !== '0.0.0' ? pkg.version : '1.3.0';
+  const appVersion = typeof pkg.version === 'string' && pkg.version !== '0.0.0' ? pkg.version : '1.3.1';
   const gradle = fs.readFileSync(buildGradlePath, 'utf8');
   const nextGradle = gradle.replace(/versionName\s+"[^"]*"/, `versionName "${appVersion}"`);
   if (nextGradle !== gradle) {

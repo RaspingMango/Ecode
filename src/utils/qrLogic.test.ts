@@ -14,6 +14,8 @@ import {
   getJsBarcodeFormat,
   getSampleBarcodeValue,
   resolveSafeCodeFormat,
+  mergeDemoItems,
+  stripDemoItems,
   BARCODE_FORMATS,
   StoredQrItem,
 } from './qrLogic';
@@ -262,6 +264,55 @@ test('resolveSafeCodeFormat preserves valid barcode formats and falls back to QR
   assert.equal(resolveSafeCodeFormat('ECODE-8849201', 'CODE_128'), 'CODE_128');
   assert.equal(resolveSafeCodeFormat('https://example.com', undefined), 'QR_CODE');
 });
+
+test('mergeDemoItems and stripDemoItems preserve user items while toggling demo data', () => {
+  const userItem: StoredQrItem = {
+    id: 'qr-user-1',
+    title: 'My Pass',
+    rawContent: 'USER-PASS-1',
+    folderId: 'tickets',
+    dataType: 'ticket',
+    createdAt: 1000,
+    isFavorite: true,
+    source: 'generated',
+  };
+  const demoItems: StoredQrItem[] = [
+    {
+      id: 'seed-1',
+      title: 'Demo 1',
+      rawContent: 'DEMO-1',
+      folderId: 'tickets',
+      dataType: 'ticket',
+      createdAt: 500,
+      isFavorite: false,
+      source: 'camera',
+    },
+    {
+      id: 'seed-2',
+      title: 'Demo 2',
+      rawContent: 'DEMO-2',
+      folderId: 'wifi',
+      dataType: 'wifi',
+      createdAt: 600,
+      isFavorite: false,
+      source: 'generated',
+    },
+  ];
+
+  const mergedOnce = mergeDemoItems([userItem], demoItems);
+  assert.equal(mergedOnce.length, 3);
+  assert.equal(mergedOnce[0].id, 'qr-user-1');
+
+  // Calling mergeDemoItems again does not duplicate existing demo items
+  const mergedTwice = mergeDemoItems(mergedOnce, demoItems);
+  assert.equal(mergedTwice.length, 3);
+
+  // Stripping demo items restores only the user item
+  const stripped = stripDemoItems(mergedTwice, demoItems.map((d) => d.id));
+  assert.equal(stripped.length, 1);
+  assert.equal(stripped[0].id, 'qr-user-1');
+});
+
 
 
 

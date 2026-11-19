@@ -8,10 +8,8 @@ import {
   Vibrate,
   Download,
   Upload,
-  RotateCcw,
   QrCode,
   Check,
-  CheckCircle2,
   Info,
   AlertCircle,
   Github,
@@ -32,7 +30,6 @@ interface SettingsViewProps {
   onToggleHaptic: () => void;
   onExportBackup: () => void;
   onImportBackup: (items: any[]) => void;
-  onResetDemoData: () => void;
   onOpenAbout: () => void;
 }
 
@@ -47,12 +44,9 @@ export function SettingsView({
   onToggleHaptic,
   onExportBackup,
   onImportBackup,
-  onResetDemoData,
   onOpenAbout,
 }: SettingsViewProps) {
   const t = TRANSLATIONS[lang];
-  const [resetSuccess, setResetSuccess] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
 
   const handleLangSelect = (selectedLang: Language) => {
@@ -89,20 +83,6 @@ export function SettingsView({
     e.target.value = '';
   };
 
-  const handleResetConfirm = () => {
-    playTapSound();
-    setShowResetModal(true);
-  };
-
-  const executeResetDemoData = () => {
-    playTapSound();
-    triggerHaptic(30);
-    onResetDemoData();
-    setShowResetModal(false);
-    setResetSuccess(true);
-    setTimeout(() => setResetSuccess(false), 2500);
-  };
-
   const isDark = theme === 'dark';
 
   return (
@@ -129,7 +109,7 @@ export function SettingsView({
         </div>
       </div>
 
-      {/* 1. Theme Section (Светлая / Тёмная тема) */}
+      {/* 1. Theme Section (Light / Dark Theme) */}
       <div className={`rounded-[28px] p-5 shadow-xl transition-colors duration-200 border space-y-3.5 ${
         isDark ? 'bg-[#1e1f23] border-white/[0.04]' : 'bg-white border-black/[0.06] shadow-sm'
       }`}>
@@ -209,7 +189,7 @@ export function SettingsView({
         </div>
       </div>
 
-      {/* 2. Language Section (Переключатель локализации) */}
+      {/* 2. Language Section (Language Switcher) */}
       <div className={`rounded-[28px] p-5 shadow-xl transition-colors duration-200 border space-y-3.5 ${
         isDark ? 'bg-[#1e1f23] border-white/[0.04]' : 'bg-white border-black/[0.06] shadow-sm'
       }`}>
@@ -366,7 +346,7 @@ export function SettingsView({
         </div>
       </div>
 
-      {/* 4. Data Management: Backup & Reset */}
+      {/* 4. Data Management: Backup & Restore */}
       <div className={`rounded-[28px] p-5 shadow-xl transition-colors duration-200 border space-y-3 ${
         isDark ? 'bg-[#1e1f23] border-white/[0.04]' : 'bg-white border-black/[0.06] shadow-sm'
       }`}>
@@ -419,27 +399,6 @@ export function SettingsView({
           />
         </label>
 
-        {/* Reset Demo Data */}
-        <button
-          type="button"
-          onClick={handleResetConfirm}
-          className={`w-full p-3.5 rounded-2xl flex items-center justify-between transition-colors ${
-            isDark ? 'bg-[#282a2f] hover:bg-[#371e1d]' : 'bg-[#f2f4ef] hover:bg-[#fde8e8]'
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <RotateCcw className={`w-4 h-4 ${isDark ? 'text-[#f2b8b5]' : 'text-[#b3261e]'}`} />
-            <div className="text-left">
-              <div className={`text-xs font-semibold ${isDark ? 'text-[#f2b8b5]' : 'text-[#b3261e]'}`}>
-                {t.resetDemoTitle}
-              </div>
-              <p className={`text-[10px] ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
-                {t.resetDemoDesc}
-              </p>
-            </div>
-          </div>
-        </button>
-
         {importError && (
           <div className={`p-3 rounded-2xl text-xs flex items-center gap-2 border ${
             isDark
@@ -448,17 +407,6 @@ export function SettingsView({
           }`}>
             <AlertCircle className={`w-4 h-4 shrink-0 ${isDark ? 'text-[#ffb4ab]' : 'text-[#b3261e]'}`} />
             <span>{importError}</span>
-          </div>
-        )}
-
-        {resetSuccess && (
-          <div className={`p-3 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-in fade-in ${
-            isDark
-              ? 'bg-[#244927] text-[#c4fbb8]'
-              : 'bg-[#e8f5e9] text-[#1b5e20]'
-          }`}>
-            <CheckCircle2 className={`w-4 h-4 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
-            <span>{t.resetSuccess}</span>
           </div>
         )}
       </div>
@@ -472,7 +420,7 @@ export function SettingsView({
             <Info className={`w-5 h-5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
             <div>
               <div className="text-xs font-bold">
-                Ecode • {t.appVersion} 1.3
+                Ecode • {t.appVersion} 1.3.1
               </div>
               <p className={`text-[10px] ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
                 Offline First • Private
@@ -518,62 +466,6 @@ export function SettingsView({
           <ExternalLink className={`w-3.5 h-3.5 shrink-0 ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`} />
         </a>
       </div>
-
-      {/* Reset Confirmation Modal */}
-      {showResetModal && (
-        <div
-          className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t.resetDemoTitle}
-          onClick={() => setShowResetModal(false)}
-        >
-          <div
-            className={`w-full max-w-sm rounded-[28px] p-6 shadow-2xl space-y-4 border ${
-              isDark ? 'bg-[#1e1f23] text-[#e3e2e6] border-white/[0.08]' : 'bg-white text-[#191c19] border-black/[0.08]'
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start gap-3">
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                isDark ? 'bg-[#93000a]/25 text-[#ffb4ab]' : 'bg-[#fde8e8] text-[#b3261e]'
-              }`}>
-                <RotateCcw className="w-5 h-5" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-bold text-base leading-tight">{t.resetDemoTitle}</h3>
-                <p className={`text-xs leading-relaxed ${isDark ? 'text-[#c4c7c5]' : 'text-[#404943]'}`}>
-                  {t.resetConfirm}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  playTapSound();
-                  setShowResetModal(false);
-                }}
-                className={`px-4 py-2.5 rounded-full text-xs font-semibold transition-colors ${
-                  isDark ? 'bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6]' : 'bg-[#eef1ec] hover:bg-[#e2e6df] text-[#191c19]'
-                }`}
-              >
-                {t.cancelBtn}
-              </button>
-              <button
-                type="button"
-                onClick={executeResetDemoData}
-                className={`px-5 py-2.5 rounded-full hover:brightness-110 active:scale-95 text-xs font-bold transition-all shadow-sm ${
-                  isDark ? 'bg-[#93000a] text-[#ffdad6]' : 'bg-[#b3261e] text-white'
-                }`}
-              >
-                {t.resetDemoTitle}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -24,11 +24,12 @@ interface ScannerViewProps {
   onQrDetected: (rawText: string, source: 'camera' | 'screen' | 'file', codeFormat?: CodeFormat) => void;
   lang?: Language;
   theme?: ThemeMode;
+  demoMode?: boolean;
 }
 
 type ScanMode = 'camera' | 'screen' | 'file';
 
-export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark' }: ScannerViewProps) {
+export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark', demoMode = false }: ScannerViewProps) {
   const isDark = theme === 'dark';
   const t = TRANSLATIONS[lang];
   const [mode, setMode] = useState<ScanMode>('camera');
@@ -576,45 +577,47 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark' }: Scann
         </div>
       )}
 
-      {/* M3 Assist Chips for Demo Testing */}
-      <div className="bg-[#1e1f23] rounded-[24px] p-3.5 space-y-2 border border-white/[0.04]">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-[#c4c7c5] flex items-center gap-1.5">
-            <Sparkles className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
-            {t.quickScanTest}
-          </span>
-          <span className="text-[10px] text-[#8e918f]">
-            {t.testWithoutCamera}
-          </span>
-        </div>
+      {/* Demo Testing Quick Scan Chips (hidden unless demo mode is active) */}
+      {demoMode && (
+        <div className="bg-[#1e1f23] rounded-[24px] p-3.5 space-y-2 border border-white/[0.04]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-[#c4c7c5] flex items-center gap-1.5">
+              <Sparkles className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
+              {t.quickScanTest}
+            </span>
+            <span className="text-[10px] text-[#8e918f]">
+              {t.testWithoutCamera}
+            </span>
+          </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <button
-            onClick={() => handleTestSample('ticket')}
-            className="py-2 px-2.5 rounded-full bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6] text-[11px] font-semibold transition-all active:scale-95 text-center truncate border border-white/[0.04]"
-          >
-            {t.sampleTicket}
-          </button>
-          <button
-            onClick={() => handleTestSample('loyalty')}
-            className="py-2 px-2.5 rounded-full bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6] text-[11px] font-semibold transition-all active:scale-95 text-center truncate border border-white/[0.04]"
-          >
-            {t.sampleLoyalty}
-          </button>
-          <button
-            onClick={() => handleTestSample('wifi')}
-            className="py-2 px-2.5 rounded-full bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6] text-[11px] font-semibold transition-all active:scale-95 text-center truncate border border-white/[0.04]"
-          >
-            {t.sampleWifi}
-          </button>
-          <button
-            onClick={() => handleTestSample('barcode')}
-            className="py-2 px-2.5 rounded-full bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6] text-[11px] font-semibold transition-all active:scale-95 text-center truncate border border-white/[0.04]"
-          >
-            {t.sampleBarcode}
-          </button>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button
+              onClick={() => handleTestSample('ticket')}
+              className="py-2 px-2.5 rounded-full bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6] text-[11px] font-semibold transition-all active:scale-95 text-center truncate border border-white/[0.04]"
+            >
+              {t.sampleTicket}
+            </button>
+            <button
+              onClick={() => handleTestSample('loyalty')}
+              className="py-2 px-2.5 rounded-full bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6] text-[11px] font-semibold transition-all active:scale-95 text-center truncate border border-white/[0.04]"
+            >
+              {t.sampleLoyalty}
+            </button>
+            <button
+              onClick={() => handleTestSample('wifi')}
+              className="py-2 px-2.5 rounded-full bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6] text-[11px] font-semibold transition-all active:scale-95 text-center truncate border border-white/[0.04]"
+            >
+              {t.sampleWifi}
+            </button>
+            <button
+              onClick={() => handleTestSample('barcode')}
+              className="py-2 px-2.5 rounded-full bg-[#282a2f] hover:bg-[#33353a] text-[#e3e2e6] text-[11px] font-semibold transition-all active:scale-95 text-center truncate border border-white/[0.04]"
+            >
+              {t.sampleBarcode}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

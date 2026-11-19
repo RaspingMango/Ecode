@@ -31,6 +31,12 @@ export function applyTheme(theme: ThemeMode): void {
       if (meta) meta.setAttribute('content', '#121316');
     }
     localStorage.setItem('ecode_theme', theme);
+    const systemBars = (window as unknown as {
+      Capacitor?: { Plugins?: { SystemBars?: { setStyle?: (opts: { style: string }) => Promise<void> } } };
+    }).Capacitor?.Plugins?.SystemBars;
+    if (systemBars?.setStyle) {
+      Promise.resolve(systemBars.setStyle({ style: theme === 'dark' ? 'DARK' : 'LIGHT' })).catch(() => {});
+    }
   } catch (e) {
     console.error('Error applying theme:', e);
   }

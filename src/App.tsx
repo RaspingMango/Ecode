@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   ScanLine,
   Image as GalleryIcon,
@@ -25,13 +25,17 @@ import {
   CodeFormat,
   StoredQrItem,
   Folder,
+  mergeDemoItems,
+  stripDemoItems,
 } from './utils/qrLogic';
 import {
+  SEED_ITEMS,
   loadStoredQrItems,
   saveStoredQrItems,
   loadStoredFolders,
   saveStoredFolders,
-  resetToSeedData,
+  loadDemoMode,
+  saveDemoMode,
 } from './utils/storage';
 import { playTapSound, triggerHaptic } from './utils/audio';
 import { Language, TRANSLATIONS, getInitialLanguage, saveLanguagePreference } from './utils/i18n';
@@ -45,6 +49,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<AppTab>('scanner');
   const [items, setItems] = useState<StoredQrItem[]>(() => loadStoredQrItems());
   const [folders, setFolders] = useState<Folder[]>(() => loadStoredFolders());
+  const [demoMode, setDemoMode] = useState<boolean>(() => loadDemoMode());
   const [hapticEnabled, setHapticEnabled] = useState(true);
 
   const t = TRANSLATIONS[lang];
@@ -72,6 +77,9 @@ export default function App() {
 
   // Non-blocking status toast (replaces window.alert)
   const [statusToast, setStatusToast] = useState<string | null>(null);
+  const logoTapCountRef = useRef(0);
+  const logoTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Save items and folders on change
   useEffect(() => {
@@ -86,15 +94,49 @@ export default function App() {
     applyTheme(theme);
   }, [theme]);
 
+  useEffect(() => {
+    return () => {
+      if (logoTapTimerRef.current) clearTimeout(logoTapTimerRef.current);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
+  const showToast = (message: string) => {
+    setStatusToast(message);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setStatusToast(null), 3000);
+  };
+
   const handleLanguageChange = (nextLang: Language) => {
     setLang(nextLang);
     saveLanguagePreference(nextLang);
   };
 
-  const handleResetDemoData = () => {
-    const reset = resetToSeedData();
-    setItems(reset.items);
-    setFolders(reset.folders);
+  const handleLogoTap = () => {
+    playTapSound();
+    logoTapCountRef.current += 1;
+
+    if (logoTapTimerRef.current) {
+      clearTimeout(logoTapTimerRef.current);
+    }
+
+    if (logoTapCountRef.current >= 5) {
+      logoTapCountRef.current = 0;
+      const nextDemo = !demoMode;
+      setDemoMode(nextDemo);
+      saveDemoMode(nextDemo);
+      triggerHaptic(30);
+      const demoIds = SEED_ITEMS.map((item) => item.id);
+      setItems((prev) =>
+        nextDemo ? mergeDemoItems(prev, SEED_ITEMS) : stripDemoItems(prev, demoIds)
+      );
+      showToast(nextDemo ? t.demoModeActivated : t.demoModeDeactivated);
+      return;
+    }
+
+    logoTapTimerRef.current = setTimeout(() => {
+      logoTapCountRef.current = 0;
+    }, 1800);
   };
 
   // Handle scanned QR or barcode detection from Camera, Screen capture, or File
@@ -207,17 +249,21 @@ export default function App() {
 
   const handleImportBackup = (importedItems: StoredQrItem[]) => {
     setItems(importedItems);
-    setStatusToast(`${t.backupRestored} ${importedItems.length}`);
-    setTimeout(() => setStatusToast(null), 3000);
+    showToast(`${t.backupRestored} ${importedItems.length}`);
   };
 
   return (
     <div className="min-h-screen bg-[#121316] text-[#e3e2e6] flex flex-col font-sans select-none overflow-x-hidden">
-      {/* Material You 3 Top App Bar */}
-      <header className="sticky top-0 z-30 bg-[#121316]/95 backdrop-blur-md px-4 py-3 border-b border-white/[0.04]">
+      {/* Top App Bar */}
+      <header className="sticky top-0 z-30 bg-[#121316]/95 backdrop-blur-md px-4 safe-top-header pb-3 border-b border-white/[0.04]">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          {/* Logo & Brand (Clean: "Material You" badge removed as requested) */}
-          <div className="flex items-center gap-3">
+          {/* Logo & Brand (5 taps toggles hidden Demo Mode) */}
+          <button
+            type="button"
+            onClick={handleLogoTap}
+            aria-label="Ecode"
+            className="flex items-center gap-3 text-left rounded-2xl focus:outline-none active:scale-95 transition-transform"
+          >
             <div
               className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-sm border transition-colors duration-200 ${
                 theme === 'dark'
@@ -236,7 +282,7 @@ export default function App() {
                 {activeSectionTitle}
               </p>
             </div>
-          </div>
+          </button>
 
           {/* Right Header Action Icons: Settings, Sound, About */}
           <div className="flex items-center gap-1.5 sm:gap-2">
@@ -293,9 +339,9 @@ export default function App() {
       </header>
 
       {/* Main Screen Content View */}
-      <main className="flex-1 pb-28 pt-2">
+      <main className="flex-1 pb-32 pt-2">
         {activeTab === 'scanner' && (
-          <ScannerView onQrDetected={handleQrDetected} lang={lang} theme={theme} />
+          <ScannerView onQrDetected={handleQrDetected} lang={lang} theme={theme} demoMode={demoMode} />
         )}
 
         {activeTab === 'gallery' && (
@@ -347,16 +393,15 @@ export default function App() {
             onToggleHaptic={() => setHapticEnabled(!hapticEnabled)}
             onExportBackup={handleExportBackup}
             onImportBackup={handleImportBackup}
-            onResetDemoData={handleResetDemoData}
             onOpenAbout={() => setAboutOpen(true)}
           />
         )}
       </main>
 
-      {/* Material You 3 Navigation Bar (M3 Signature Pill Bar) */}
-      <nav 
-        className="fixed bottom-0 left-0 right-0 z-30 bg-[#1e1f23] border-t border-white/[0.04] px-3 py-2 safe-bottom shadow-2xl"
-        aria-label="Основная навигация"
+      {/* Bottom Navigation Bar */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-30 bg-[#1e1f23] border-t border-white/[0.04] px-3 pt-2 safe-bottom-nav shadow-2xl"
+        aria-label="Main navigation"
       >
         <div className="max-w-md mx-auto grid grid-cols-4 gap-1">
           {/* Scanner Tab */}
@@ -566,7 +611,7 @@ export default function App() {
                   <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                     theme === 'dark' ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
                   }`}>
-                    v1.3
+                    v1.3.1
                   </span>
                 </div>
               </div>

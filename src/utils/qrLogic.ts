@@ -493,3 +493,27 @@ export function buildVCardQrString(name: string, phone: string, email: string, o
     'END:VCARD'
   ].filter(Boolean).join('\n');
 }
+
+/**
+ * Merges demo items into the existing items list without duplicating IDs.
+ */
+export function mergeDemoItems(
+  currentItems: StoredQrItem[],
+  demoItems: StoredQrItem[]
+): StoredQrItem[] {
+  const existingIds = new Set(currentItems.map((item) => item.id));
+  const missingDemo = demoItems.filter((item) => !existingIds.has(item.id));
+  return [...currentItems, ...missingDemo];
+}
+
+/**
+ * Removes demo items by ID while preserving all user-created or scanned items.
+ */
+export function stripDemoItems(
+  currentItems: StoredQrItem[],
+  demoIds: Iterable<string>
+): StoredQrItem[] {
+  const idSet = new Set(demoIds);
+  return currentItems.filter((item) => !idSet.has(item.id));
+}
+

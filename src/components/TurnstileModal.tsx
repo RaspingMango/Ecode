@@ -65,7 +65,7 @@ export function TurnstileModal({
       aria-label="Turnstile View"
     >
       {/* Top Bar with Dismiss and Brightness Reminder */}
-      <div className="w-full max-w-md flex items-center justify-between pt-2">
+      <div className="w-full max-w-md flex items-center justify-between safe-top-turnstile">
         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 text-amber-900 text-xs font-bold">
           <SunMedium className="w-4 h-4 text-amber-600 animate-pulse" />
           <span>{t.turnstileTitle}</span>
@@ -126,7 +126,7 @@ export function TurnstileModal({
       </div>
 
       {/* Bottom Close Button */}
-      <div className="w-full max-w-md pb-4">
+      <div className="w-full max-w-md safe-bottom-turnstile">
         <button
           onClick={onClose}
           className="w-full py-4 px-6 rounded-full bg-slate-950 text-white font-bold text-sm hover:bg-slate-900 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-xl"

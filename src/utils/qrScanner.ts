@@ -231,7 +231,7 @@ export async function scanImageFile(file: File | Blob): Promise<ScanResult | nul
 
     img.onerror = (err) => {
       URL.revokeObjectURL(url);
-      reject(new Error('Не удалось загрузить изображение для сканирования: ' + err));
+      reject(new Error('Failed to load image for scanning: ' + err));
     };
 
     img.src = url;

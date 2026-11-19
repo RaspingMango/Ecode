@@ -2,6 +2,7 @@ import { StoredQrItem, Folder, DEFAULT_FOLDERS, buildWifiQrString, buildVCardQrS
 
 const STORAGE_QR_KEY = 'clean_qr_app_items_v1';
 const STORAGE_FOLDERS_KEY = 'clean_qr_app_folders_v1';
+const STORAGE_DEMO_MODE_KEY = 'ecode_demo_mode_v1';
 
 export const SEED_ITEMS: StoredQrItem[] = [
   {
@@ -78,13 +79,13 @@ export function loadStoredQrItems(): StoredQrItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_QR_KEY);
     if (!raw) {
-      saveStoredQrItems(SEED_ITEMS);
-      return SEED_ITEMS;
+      saveStoredQrItems([]);
+      return [];
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : SEED_ITEMS;
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return SEED_ITEMS;
+    return [];
   }
 }
 
@@ -118,8 +119,19 @@ export function saveStoredFolders(folders: Folder[]): void {
   }
 }
 
-export function resetToSeedData(): { items: StoredQrItem[]; folders: Folder[] } {
-  saveStoredQrItems(SEED_ITEMS);
-  saveStoredFolders(DEFAULT_FOLDERS);
-  return { items: [...SEED_ITEMS], folders: [...DEFAULT_FOLDERS] };
+export function loadDemoMode(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_DEMO_MODE_KEY) === 'true';
+  } catch {
+    return false;
+  }
 }
+
+export function saveDemoMode(enabled: boolean): void {
+  try {
+    localStorage.setItem(STORAGE_DEMO_MODE_KEY, enabled ? 'true' : 'false');
+  } catch (e) {
+    console.error('Failed to save demo mode to localStorage:', e);
+  }
+}
+

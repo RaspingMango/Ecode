@@ -649,7 +649,7 @@ export function CleanQrModal({
           </div>
 
           {/* Sticky Bottom Actions */}
-          <div className={`p-4 border-t sticky bottom-0 z-10 flex gap-2.5 ${
+          <div className={`px-4 pt-4 safe-bottom-sheet border-t sticky bottom-0 z-10 flex gap-2.5 ${
             isDark ? 'bg-[#1e1f23] border-white/[0.04]' : 'bg-white border-black/[0.06]'
           }`}>
             <button

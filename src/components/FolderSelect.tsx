@@ -111,7 +111,7 @@ export function FolderSelect({
   lang = 'ru',
   theme = 'dark',
   className = '',
-  ariaLabel = 'Выбор папки',
+  ariaLabel = 'Select folder',
 }: FolderSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
