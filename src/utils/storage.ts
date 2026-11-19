@@ -3,6 +3,7 @@ import { StoredQrItem, Folder, DEFAULT_FOLDERS, buildWifiQrString, buildVCardQrS
 const STORAGE_QR_KEY = 'clean_qr_app_items_v1';
 const STORAGE_FOLDERS_KEY = 'clean_qr_app_folders_v1';
 const STORAGE_DEMO_MODE_KEY = 'ecode_demo_mode_v1';
+const STORAGE_SHOW_GALLERY_BADGE_KEY = 'ecode_show_gallery_badge_v1';
 
 export const SEED_ITEMS: StoredQrItem[] = [
   {
@@ -134,4 +135,21 @@ export function saveDemoMode(enabled: boolean): void {
     console.error('Failed to save demo mode to localStorage:', e);
   }
 }
+
+export function loadShowGalleryBadge(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_SHOW_GALLERY_BADGE_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+}
+
+export function saveShowGalleryBadge(enabled: boolean): void {
+  try {
+    localStorage.setItem(STORAGE_SHOW_GALLERY_BADGE_KEY, enabled ? 'true' : 'false');
+  } catch (e) {
+    console.error('Failed to save gallery badge setting to localStorage:', e);
+  }
+}
+
 

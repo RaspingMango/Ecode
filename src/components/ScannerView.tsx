@@ -17,6 +17,7 @@ import {
 import { scanImageData, scanImageFile } from '../utils/qrScanner';
 import type { CodeFormat } from '../utils/qrLogic';
 import { playScanSuccessSound, playTapSound, triggerHaptic } from '../utils/audio';
+import { readClipboardImageFromDevice } from '../utils/nativeFiles';
 import { Language, TRANSLATIONS } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
 
@@ -259,24 +260,21 @@ export function ScannerView({ onQrDetected, lang = 'ru', theme = 'dark', demoMod
     setIsProcessingFile(true);
     setErrorMsg(null);
     try {
-      if (!navigator.clipboard || !navigator.clipboard.read) {
+      const clipResult = await readClipboardImageFromDevice();
+      if (!clipResult.supported) {
         setErrorMsg(lang === 'ru'
-          ? 'Чтение буфера не поддерживается. Нажмите Ctrl+V или выберите файл скриншота.'
-          : 'Clipboard read is not supported. Press Ctrl+V or upload a screenshot file.'
+          ? 'Чтение буфера не поддерживается. Выберите файл скриншота из галереи.'
+          : 'Clipboard read is not supported. Please choose a screenshot file.'
         );
-        setIsProcessingFile(false);
         return;
       }
-      const clipboardItems = await navigator.clipboard.read();
-      for (const item of clipboardItems) {
-        for (const type of item.types) {
-          if (type.startsWith('image/')) {
-            const blob = await item.getType(type);
-            const file = new File([blob], 'clipboard-screenshot.png', { type });
-            await handleFileScan(file);
-            return;
-          }
-        }
+      if (clipResult.permissionDenied) {
+        setErrorMsg(t.clipboardPermissionDenied);
+        return;
+      }
+      if (clipResult.file) {
+        await handleFileScan(clipResult.file);
+        return;
       }
       setErrorMsg(lang === 'ru'
         ? 'В буфере обмена нет изображения. Сделайте скриншот с кодом и нажмите кнопку снова.'

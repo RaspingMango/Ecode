@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Github,
   ExternalLink,
+  Hash,
 } from 'lucide-react';
 import { Language, TRANSLATIONS } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
@@ -28,6 +29,8 @@ interface SettingsViewProps {
   onToggleSound: () => void;
   hapticEnabled: boolean;
   onToggleHaptic: () => void;
+  showGalleryBadge: boolean;
+  onToggleGalleryBadge: () => void;
   onExportBackup: () => void;
   onImportBackup: (items: any[]) => void;
   onOpenAbout: () => void;
@@ -42,6 +45,8 @@ export function SettingsView({
   onToggleSound,
   hapticEnabled,
   onToggleHaptic,
+  showGalleryBadge,
+  onToggleGalleryBadge,
   onExportBackup,
   onImportBackup,
   onOpenAbout,
@@ -185,6 +190,52 @@ export function SettingsView({
                 {t.themeLightDesc}
               </p>
             </div>
+          </button>
+        </div>
+
+        {/* Gallery Counter Badge Toggle */}
+        <div className={`flex items-center justify-between py-1 pt-3 border-t ${
+          isDark ? 'border-white/[0.04]' : 'border-black/[0.06]'
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
+              showGalleryBadge
+                ? isDark ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
+                : isDark ? 'bg-[#282a2f] text-[#8e918f]' : 'bg-[#e9ece5] text-[#575a56]'
+            }`}>
+              <Hash className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="font-semibold text-xs leading-tight">
+                {t.galleryBadgeTitle}
+              </div>
+              <p className={`text-[10px] mt-0.5 ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
+                {t.galleryBadgeDesc}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              playTapSound();
+              onToggleGalleryBadge();
+            }}
+            className={`w-12 h-7 rounded-full transition-colors relative p-1 ${
+              showGalleryBadge
+                ? isDark ? 'bg-[#a8f09b]' : 'bg-[#2e6c31]'
+                : isDark ? 'bg-[#33353a]' : 'bg-[#e0e4dd]'
+            }`}
+            aria-label={t.galleryBadgeTitle}
+            aria-pressed={showGalleryBadge}
+          >
+            <div
+              className={`w-5 h-5 rounded-full transition-transform ${
+                showGalleryBadge
+                  ? isDark ? 'translate-x-5 bg-[#0b3810]' : 'translate-x-5 bg-white'
+                  : 'translate-x-0 bg-white'
+              }`}
+            />
           </button>
         </div>
       </div>
@@ -420,7 +471,7 @@ export function SettingsView({
             <Info className={`w-5 h-5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
             <div>
               <div className="text-xs font-bold">
-                Ecode • {t.appVersion} 1.3.2
+                Ecode • {t.appVersion} 1.3.3
               </div>
               <p className={`text-[10px] ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
                 Offline First • Private

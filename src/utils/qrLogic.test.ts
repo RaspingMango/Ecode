@@ -23,6 +23,7 @@ import { scanBarcodeWithZxing, mapZxingFormatToCodeFormat, ZXing } from './qrSca
 import { hexToRgb, rgbToHex, normalizeHexColor, getColorContrastRatio } from './color';
 import { getLocalizedDetailKey, getLocalizedDetailValue, getLocalizedFolderName, formatCodeCount } from './i18n';
 import { sanitizeShareFileName, extractPngBase64 } from './share';
+import { sanitizeDownloadFileName, utf8ToBase64 } from './nativeFiles';
 
 test('parseQrContent parses Wi-Fi payload correctly', () => {
   const raw = 'WIFI:S:Home_Network_5G;T:WPA;P:SuperSecret123;H:false;;';
@@ -322,6 +323,15 @@ test('share helpers sanitize file names and extract PNG base64 payloads safely',
   assert.equal(extractPngBase64('data:image/png;base64,iVBORw0KGgo='), 'iVBORw0KGgo=');
   assert.equal(extractPngBase64('data:text/plain;base64,abc'), null);
   assert.equal(extractPngBase64(null), null);
+});
+
+test('download helpers sanitize filenames and encode UTF-8 SVG/JSON cleanly to base64', () => {
+  assert.equal(sanitizeDownloadFileName('Билет: Концерт / VIP', 'png'), 'Билет_ Концерт _ VIP.png');
+  assert.equal(sanitizeDownloadFileName('   ', 'svg'), 'ecode-code.svg');
+
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg"><text>Привет</text></svg>';
+  const encoded = utf8ToBase64(svg);
+  assert.equal(Buffer.from(encoded, 'base64').toString('utf8'), svg);
 });
 
 

@@ -8,6 +8,8 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(ScreenBrightnessPlugin.class);
         registerPlugin(NativeSharePlugin.class);
+        registerPlugin(NativeClipboardPlugin.class);
+        registerPlugin(NativeDownloadPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

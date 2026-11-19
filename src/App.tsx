@@ -36,8 +36,11 @@ import {
   saveStoredFolders,
   loadDemoMode,
   saveDemoMode,
+  loadShowGalleryBadge,
+  saveShowGalleryBadge,
 } from './utils/storage';
 import { playTapSound, triggerHaptic } from './utils/audio';
+import { saveFileToDevice } from './utils/nativeFiles';
 import { Language, TRANSLATIONS, getInitialLanguage, saveLanguagePreference } from './utils/i18n';
 import { ThemeMode, getInitialTheme, applyTheme } from './utils/theme';
 
@@ -50,6 +53,7 @@ export default function App() {
   const [items, setItems] = useState<StoredQrItem[]>(() => loadStoredQrItems());
   const [folders, setFolders] = useState<Folder[]>(() => loadStoredFolders());
   const [demoMode, setDemoMode] = useState<boolean>(() => loadDemoMode());
+  const [showGalleryBadge, setShowGalleryBadge] = useState<boolean>(() => loadShowGalleryBadge());
   const [hapticEnabled, setHapticEnabled] = useState(true);
 
   const t = TRANSLATIONS[lang];
@@ -234,17 +238,21 @@ export default function App() {
           ? t.tabCreate
           : t.tabSettings;
 
-  const handleExportBackup = () => {
+  const handleExportBackup = async () => {
     const dataStr = JSON.stringify(items, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ecode-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const fileName = `ecode-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    try {
+      const res = await saveFileToDevice({
+        fileName,
+        mimeType: 'application/json',
+        textContent: dataStr,
+      });
+      if (res.saved) {
+        showToast(`${t.savedToDownloads} ${res.fileName}`);
+      }
+    } catch {
+      showToast(t.downloadFailed);
+    }
   };
 
   const handleImportBackup = (importedItems: StoredQrItem[]) => {
@@ -391,6 +399,14 @@ export default function App() {
             onToggleSound={() => setSoundEnabled(!soundEnabled)}
             hapticEnabled={hapticEnabled}
             onToggleHaptic={() => setHapticEnabled(!hapticEnabled)}
+            showGalleryBadge={showGalleryBadge}
+            onToggleGalleryBadge={() => {
+              setShowGalleryBadge((prev) => {
+                const next = !prev;
+                saveShowGalleryBadge(next);
+                return next;
+              });
+            }}
             onExportBackup={handleExportBackup}
             onImportBackup={handleImportBackup}
             onOpenAbout={() => setAboutOpen(true)}
@@ -458,7 +474,7 @@ export default function App() {
               }`}
             >
               <GalleryIcon className="w-5 h-5" />
-              {items.length > 0 && (
+              {showGalleryBadge && items.length > 0 && (
                 <span className={`absolute -top-1 right-2 sm:right-2.5 min-w-4 h-4 px-1 rounded-full font-extrabold text-[10px] flex items-center justify-center shadow-sm ${
                   theme === 'dark' ? 'bg-[#f2b8b5] text-[#601410]' : 'bg-[#2e6c31] text-white'
                 }`}>
@@ -559,6 +575,7 @@ export default function App() {
           lang={lang}
           theme={theme}
           onSaveToGallery={handleSaveToGallery}
+          onShowToast={showToast}
         />
       )}
 
@@ -611,7 +628,7 @@ export default function App() {
                   <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                     theme === 'dark' ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
                   }`}>
-                    v1.3.2
+                    v1.3.3
                   </span>
                 </div>
               </div>
@@ -683,7 +700,7 @@ export default function App() {
       {/* Non-blocking status toast */}
       {statusToast && (
         <div
-          className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full text-xs font-bold shadow-xl border animate-in fade-in ${
+          className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-2rem)] px-5 py-2.5 rounded-2xl text-xs font-bold text-center shadow-xl border animate-in fade-in ${
             theme === 'dark'
               ? 'bg-[#244927] text-[#c4fbb8] border-[#a8f09b]/30'
               : 'bg-[#2e6c31] text-white border-[#1b4d1e]'

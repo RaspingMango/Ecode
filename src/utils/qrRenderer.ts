@@ -6,6 +6,11 @@ import {
   is1DBarcodeFormat,
   validateBarcodePayload,
 } from './qrLogic';
+import {
+  copyImageToDeviceClipboard,
+  sanitizeDownloadFileName,
+  saveFileToDevice,
+} from './nativeFiles';
 
 export interface QrRenderOptions {
   fgColor?: string;
@@ -143,28 +148,23 @@ export async function downloadQr(
   fileName: string = 'clean-qr-code',
   format: 'png' | 'svg' = 'png',
   options: QrRenderOptions = {}
-): Promise<void> {
-  const safeName = fileName.replace(/[^a-zA-Z0-9_-]/g, '_') || 'ecode';
+): Promise<{ saved: boolean; fileName: string }> {
+  const fullFileName = sanitizeDownloadFileName(fileName, format);
 
   if (format === 'svg') {
     const svgStr = await generateQrSvg(text, options);
-    const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${safeName}.svg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    return saveFileToDevice({
+      fileName: fullFileName,
+      mimeType: 'image/svg+xml',
+      textContent: svgStr,
+    });
   } else {
     const dataUrl = await generateQrDataUrl(text, { ...options, width: 1024 });
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = `${safeName}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    return saveFileToDevice({
+      fileName: fullFileName,
+      mimeType: 'image/png',
+      dataUrl,
+    });
   }
 }
 
@@ -177,15 +177,7 @@ export async function copyQrToClipboard(
 ): Promise<boolean> {
   try {
     const dataUrl = await generateQrDataUrl(text, { ...options, width: 768 });
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
-    if (navigator.clipboard && 'write' in navigator.clipboard) {
-      await navigator.clipboard.write([
-        new ClipboardItem({ 'image/png': blob })
-      ]);
-      return true;
-    }
-    return false;
+    return await copyImageToDeviceClipboard(dataUrl, 'Ecode');
   } catch (e) {
     console.warn('Clipboard write failed:', e);
     return false;

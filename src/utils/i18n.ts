@@ -32,6 +32,8 @@ export const TRANSLATIONS = {
     soundDesc: 'Звуковой сигнал при сканировании и кликах',
     hapticTitle: 'Виброотклик',
     hapticDesc: 'Тактильная вибрация при сканировании',
+    galleryBadgeTitle: 'Счётчик кодов на вкладке',
+    galleryBadgeDesc: 'Показывать количество кодов в нижнем меню',
     dataSection: 'Управление данными',
     backupDataTitle: 'Скачать резервную копию',
     backupDataDesc: 'Сохранить все коды и папки в JSON-файл',
@@ -39,6 +41,9 @@ export const TRANSLATIONS = {
     restoreDataDesc: 'Загрузить резервную копию кодов',
     demoModeActivated: 'Демо-режим включён',
     demoModeDeactivated: 'Демо-режим выключен',
+    savedToDownloads: 'Сохранено в Загрузки:',
+    downloadFailed: 'Не удалось сохранить файл',
+    clipboardPermissionDenied: 'Доступ к буферу обмена отклонён. Выберите скриншот из галереи.',
     aboutSection: 'О приложении',
     appVersion: 'Версия',
 
@@ -109,7 +114,7 @@ export const TRANSLATIONS = {
     turnstileClose: 'Готово',
 
     // Gallery
-    searchPlaceholder: 'Поиск кодов в Ecode...',
+    searchPlaceholder: 'Поиск кодов',
     allCodesChip: 'Все коды',
     favoritesChip: 'Избранное',
     newFolderChip: 'Новая папка',
@@ -273,6 +278,8 @@ export const TRANSLATIONS = {
     soundDesc: 'Synthesized chime on scan and taps',
     hapticTitle: 'Haptic Feedback',
     hapticDesc: 'Tactile vibration when scanning',
+    galleryBadgeTitle: 'Gallery Tab Counter',
+    galleryBadgeDesc: 'Show saved code count in bottom navigation',
     dataSection: 'Data Management',
     backupDataTitle: 'Download Backup',
     backupDataDesc: 'Export all codes and folders to JSON file',
@@ -280,6 +287,9 @@ export const TRANSLATIONS = {
     restoreDataDesc: 'Import JSON backup file',
     demoModeActivated: 'Demo mode enabled',
     demoModeDeactivated: 'Demo mode disabled',
+    savedToDownloads: 'Saved to Downloads:',
+    downloadFailed: 'Failed to save file',
+    clipboardPermissionDenied: 'Clipboard read permission denied. Please pick a screenshot from files.',
     aboutSection: 'About Ecode',
     appVersion: 'Version',
 
@@ -350,7 +360,7 @@ export const TRANSLATIONS = {
     turnstileClose: 'Done',
 
     // Gallery
-    searchPlaceholder: 'Search codes in Ecode...',
+    searchPlaceholder: 'Search codes',
     allCodesChip: 'All Codes',
     favoritesChip: 'Favorites',
     newFolderChip: 'New Folder',

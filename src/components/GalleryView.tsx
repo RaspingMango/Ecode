@@ -168,29 +168,29 @@ export function GalleryView({
 
   return (
     <div className="flex flex-col h-full w-full max-w-4xl mx-auto px-4 py-2 space-y-4">
-      {/* Material You 3 Search Bar & Controls */}
+      {/* Search Bar & Controls */}
       <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#8e918f] absolute left-4 top-3.5 pointer-events-none" />
+        <div className="relative flex-1 min-w-0">
+          <Search className="w-3.5 h-3.5 text-[#8e918f] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.searchPlaceholder}
-            className="w-full pl-11 pr-10 py-2.5 rounded-full bg-[#282a2f] text-xs sm:text-sm text-[#e3e2e6] placeholder:text-[#8e918f] focus:outline-none focus:ring-2 focus:ring-[#a8f09b] border-none shadow-sm transition-all"
+            className={`w-full pl-7 ${searchQuery ? 'pr-8' : 'pr-2'} py-2.5 rounded-full bg-[#282a2f] text-xs sm:text-sm text-[#e3e2e6] placeholder:text-[#8e918f] focus:outline-none focus:ring-2 focus:ring-[#a8f09b] border-none shadow-sm transition-all`}
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="w-6 h-6 rounded-full bg-white/[0.08] text-[#c4c7c5] hover:text-white absolute right-3 top-2.5 flex items-center justify-center transition-colors"
+              className="w-6 h-6 rounded-full bg-white/[0.08] text-[#c4c7c5] hover:text-white absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center transition-colors"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
-        {/* Sort Selector with M3 styling */}
-        <div className="relative">
+        {/* Sort Selector */}
+        <div className="relative shrink-0">
           <select
             value={sortBy}
             onChange={(e) => {
@@ -205,7 +205,7 @@ export function GalleryView({
             <option value="favoritesFirst">{t.sortFavorites}</option>
             <option value="alphabetical">{t.sortAlphabetical}</option>
           </select>
-          <SlidersHorizontal className="w-3.5 h-3.5 text-[#8e918f] absolute right-3 top-3.5 pointer-events-none" />
+          <SlidersHorizontal className="w-3.5 h-3.5 text-[#8e918f] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
 
         {/* View mode toggle */}

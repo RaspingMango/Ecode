@@ -60,6 +60,7 @@ interface CleanQrModalProps {
   lang?: Language;
   theme?: ThemeMode;
   onSaveToGallery: (item: Omit<StoredQrItem, 'id' | 'createdAt'>, existingId?: string) => void;
+  onShowToast?: (message: string) => void;
 }
 
 export function CleanQrModal({
@@ -73,6 +74,7 @@ export function CleanQrModal({
   lang = 'ru',
   theme = 'dark',
   onSaveToGallery,
+  onShowToast,
 }: CleanQrModalProps) {
   const isDark = theme === 'dark';
   const t = TRANSLATIONS[lang];
@@ -97,6 +99,7 @@ export function CleanQrModal({
   const [isFavorite, setIsFavorite] = useState(false);
   const [isCopiedText, setIsCopiedText] = useState(false);
   const [isCopiedImage, setIsCopiedImage] = useState(false);
+  const [downloadedFormat, setDownloadedFormat] = useState<'png' | 'svg' | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const isBarcode = is1DBarcodeFormat(safeFormat);
@@ -202,12 +205,21 @@ export function CleanQrModal({
 
   const handleDownload = async (format: 'png' | 'svg') => {
     playTapSound();
-    await downloadQr(rawContent, title || 'ecode-code', format, {
-      fgColor,
-      bgColor,
-      ecc,
-      codeFormat: safeFormat,
-    });
+    try {
+      const res = await downloadQr(rawContent, title || 'ecode-code', format, {
+        fgColor,
+        bgColor,
+        ecc,
+        codeFormat: safeFormat,
+      });
+      if (res.saved) {
+        setDownloadedFormat(format);
+        setTimeout(() => setDownloadedFormat((curr) => (curr === format ? null : curr)), 2000);
+        onShowToast?.(`${t.savedToDownloads} ${res.fileName}`);
+      }
+    } catch {
+      onShowToast?.(t.downloadFailed);
+    }
   };
 
   const handleShare = async () => {
@@ -407,14 +419,22 @@ export function CleanQrModal({
                   onClick={() => handleDownload('png')}
                   className="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] active:scale-95 text-[#e3e2e6] text-xs font-semibold transition-colors"
                 >
-                  <Download className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
+                  {downloadedFormat === 'png' ? (
+                    <Check className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
+                  ) : (
+                    <Download className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
+                  )}
                   {t.downloadPng}
                 </button>
                 <button
                   onClick={() => handleDownload('svg')}
                   className="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] active:scale-95 text-[#e3e2e6] text-xs font-semibold transition-colors"
                 >
-                  <Download className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8c7fa]' : 'text-[#1d4ed8]'}`} />
+                  {downloadedFormat === 'svg' ? (
+                    <Check className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8c7fa]' : 'text-[#1d4ed8]'}`} />
+                  ) : (
+                    <Download className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8c7fa]' : 'text-[#1d4ed8]'}`} />
+                  )}
                   {t.downloadSvg}
                 </button>
                 <button
