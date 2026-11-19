@@ -629,35 +629,29 @@ export function GalleryView({
         </div>
       )}
 
-      {/* M3 Backup and Restore Bar */}
-      <div className="pt-4 border-t border-white/[0.04] flex flex-wrap items-center justify-between gap-2 text-xs text-[#8e918f]">
-        <span>
-          {t.totalSavedFooter}: {items.length} • {folders.length}
-        </span>
+      {/* Backup and Restore Bar */}
+      <div className="pt-4 border-t border-white/[0.04] flex flex-wrap items-center justify-end gap-2 text-xs text-[#8e918f]">
+        <button
+          onClick={() => {
+            playTapSound();
+            onExportBackup();
+          }}
+          className="px-3.5 py-1.5 rounded-full bg-[#1e1f23] hover:bg-[#282a2f] text-[#c4c7c5] hover:text-[#e3e2e6] text-xs font-semibold flex items-center gap-1.5 transition-colors border border-white/[0.04]"
+        >
+          <Download className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
+          <span>{t.backupBtn}</span>
+        </button>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              playTapSound();
-              onExportBackup();
-            }}
-            className="px-3.5 py-1.5 rounded-full bg-[#1e1f23] hover:bg-[#282a2f] text-[#c4c7c5] hover:text-[#e3e2e6] text-xs font-semibold flex items-center gap-1.5 transition-colors border border-white/[0.04]"
-          >
-            <Download className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
-            <span>{t.backupBtn}</span>
-          </button>
-
-          <label className="px-3.5 py-1.5 rounded-full bg-[#1e1f23] hover:bg-[#282a2f] text-[#c4c7c5] hover:text-[#e3e2e6] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-white/[0.04]">
-            <Upload className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8c7fa]' : 'text-[#1d4ed8]'}`} />
-            <span>{t.restoreBtn}</span>
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleFileImport}
-              className="hidden"
-            />
-          </label>
-        </div>
+        <label className="px-3.5 py-1.5 rounded-full bg-[#1e1f23] hover:bg-[#282a2f] text-[#c4c7c5] hover:text-[#e3e2e6] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-white/[0.04]">
+          <Upload className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8c7fa]' : 'text-[#1d4ed8]'}`} />
+          <span>{t.restoreBtn}</span>
+          <input
+            type="file"
+            accept=".json"
+            onChange={handleFileImport}
+            className="hidden"
+          />
+        </label>
       </div>
 
       {/* Delete Confirmation Dialog (replaces window.confirm for iframe compatibility) */}

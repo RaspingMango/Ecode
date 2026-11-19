@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { X, SunMedium, Smartphone, Sparkles } from 'lucide-react';
 import { CodeFormat, getBarcodeFormatLabel, is1DBarcodeFormat, resolveSafeCodeFormat } from '../utils/qrLogic';
 import { generateQrDataUrl } from '../utils/qrRenderer';
+import { enableMaxTurnstileBrightness, restoreTurnstileBrightness } from '../utils/brightness';
 import { Language, TRANSLATIONS } from '../utils/i18n';
 
 interface TurnstileModalProps {
@@ -40,6 +41,15 @@ export function TurnstileModal({
       codeFormat: safeFormat,
     }).then(setDataUrl).catch(console.error);
 
+    let active = true;
+    let previousBrightness = -1;
+    enableMaxTurnstileBrightness().then((prev) => {
+      previousBrightness = prev;
+      if (!active) {
+        restoreTurnstileBrightness(prev);
+      }
+    });
+
     let wakeLock: any = null;
     if ('wakeLock' in navigator) {
       (navigator as any).wakeLock.request('screen')
@@ -50,11 +60,13 @@ export function TurnstileModal({
     }
 
     return () => {
+      active = false;
+      restoreTurnstileBrightness(previousBrightness);
       if (wakeLock) {
         wakeLock.release().catch(() => {});
       }
     };
-  }, [isOpen, rawContent, codeFormat]);
+  }, [isOpen, rawContent, safeFormat]);
 
   if (!isOpen) return null;
 

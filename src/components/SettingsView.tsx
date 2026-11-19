@@ -420,7 +420,7 @@ export function SettingsView({
             <Info className={`w-5 h-5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
             <div>
               <div className="text-xs font-bold">
-                Ecode • {t.appVersion} 1.3.1
+                Ecode • {t.appVersion} 1.3.2
               </div>
               <p className={`text-[10px] ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
                 Offline First • Private

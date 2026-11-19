@@ -22,6 +22,7 @@ import {
 import { scanBarcodeWithZxing, mapZxingFormatToCodeFormat, ZXing } from './qrScanner';
 import { hexToRgb, rgbToHex, normalizeHexColor, getColorContrastRatio } from './color';
 import { getLocalizedDetailKey, getLocalizedDetailValue, getLocalizedFolderName, formatCodeCount } from './i18n';
+import { sanitizeShareFileName, extractPngBase64 } from './share';
 
 test('parseQrContent parses Wi-Fi payload correctly', () => {
   const raw = 'WIFI:S:Home_Network_5G;T:WPA;P:SuperSecret123;H:false;;';
@@ -312,6 +313,17 @@ test('mergeDemoItems and stripDemoItems preserve user items while toggling demo 
   assert.equal(stripped.length, 1);
   assert.equal(stripped[0].id, 'qr-user-1');
 });
+
+test('share helpers sanitize file names and extract PNG base64 payloads safely', () => {
+  assert.equal(sanitizeShareFileName('My Ticket 2026!'), 'My_Ticket_2026');
+  assert.equal(sanitizeShareFileName('Билет: Концерт'), 'ecode-code');
+  assert.equal(sanitizeShareFileName('   '), 'ecode-code');
+
+  assert.equal(extractPngBase64('data:image/png;base64,iVBORw0KGgo='), 'iVBORw0KGgo=');
+  assert.equal(extractPngBase64('data:text/plain;base64,abc'), null);
+  assert.equal(extractPngBase64(null), null);
+});
+
 
 
 

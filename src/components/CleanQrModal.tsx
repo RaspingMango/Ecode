@@ -37,6 +37,7 @@ import {
 import { generateQrDataUrl, downloadQr, copyQrToClipboard, QrRenderOptions } from '../utils/qrRenderer';
 import { TurnstileModal } from './TurnstileModal';
 import { playTapSound, triggerHaptic } from '../utils/audio';
+import { shareCodeContent } from '../utils/share';
 import {
   Language,
   TRANSLATIONS,
@@ -211,17 +212,32 @@ export function CleanQrModal({
 
   const handleShare = async () => {
     playTapSound();
-    if (navigator.share) {
+    let imageDataUrl = dataUrl;
+    if (!imageDataUrl) {
       try {
-        await navigator.share({
-          title: title || 'Ecode',
-          text: rawContent,
+        imageDataUrl = await generateQrDataUrl(rawContent, {
+          fgColor,
+          bgColor,
+          ecc,
+          margin: 2,
+          width: 720,
+          codeFormat: safeFormat,
         });
       } catch {
-        // Cancelled
+        imageDataUrl = '';
       }
-    } else {
-      handleCopyText();
+    }
+
+    const result = await shareCodeContent({
+      title: title || 'Ecode',
+      rawContent,
+      dialogTitle: t.shareQr,
+      imageDataUrl,
+    });
+
+    if (result === 'copied') {
+      setIsCopiedText(true);
+      setTimeout(() => setIsCopiedText(false), 2000);
     }
   };
 
