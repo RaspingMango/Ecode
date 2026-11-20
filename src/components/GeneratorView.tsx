@@ -8,7 +8,6 @@ import {
   User,
   Phone,
   BookmarkPlus,
-  Download,
   Copy,
   Maximize2,
   Check,
@@ -23,6 +22,7 @@ import {
   BARCODE_FORMATS,
   BarcodeValidationResult,
   CodeFormat,
+  DownloadImageFormat,
   Folder,
   StoredQrItem,
   QrDataType,
@@ -41,18 +41,29 @@ import { Language, TRANSLATIONS, getLocalizedFolderName } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
 import { FolderSelect } from './FolderSelect';
 import { CodeColorPicker } from './CodeColorPicker';
+import { DownloadButton } from './DownloadButton';
 
 interface GeneratorViewProps {
   folders: Folder[];
   lang?: Language;
   theme?: ThemeMode;
+  defaultDownloadFormat?: DownloadImageFormat;
   onSaveToGallery: (item: Omit<StoredQrItem, 'id' | 'createdAt'>) => void;
   onOpenGallery: () => void;
+  onShowToast?: (message: string) => void;
 }
 
 type GeneratorTemplate = 'text' | 'url' | 'wifi' | 'ticket' | 'loyalty' | 'barcode' | 'vcard' | 'phone';
 
-export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGallery, onOpenGallery }: GeneratorViewProps) {
+export function GeneratorView({
+  folders,
+  lang = 'ru',
+  theme = 'dark',
+  defaultDownloadFormat = 'png',
+  onSaveToGallery,
+  onOpenGallery,
+  onShowToast,
+}: GeneratorViewProps) {
   const isDark = theme === 'dark';
   const t = TRANSLATIONS[lang];
   const [template, setTemplate] = useState<GeneratorTemplate>('text');
@@ -103,6 +114,7 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
   const [showTurnstile, setShowTurnstile] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [copiedImage, setCopiedImage] = useState(false);
+  const [isDownloaded, setIsDownloaded] = useState(false);
 
   const activeCodeFormat: CodeFormat = template === 'barcode' ? barcodeFormat : 'QR_CODE';
   const isBarcodeMode = is1DBarcodeFormat(activeCodeFormat);
@@ -138,7 +150,7 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
   const rawQrString = useMemo(() => {
     switch (template) {
       case 'text':
-        return textContent.trim() || (lang === 'ru' ? 'Привет от Ecode!' : 'Hello from Ecode!');
+        return textContent.trim() || (lang === 'ru' ? 'Привет от Ectode!' : 'Hello from Ectode!');
       case 'url':
         return urlContent.trim() || 'https://google.com';
       case 'wifi':
@@ -164,7 +176,7 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
       case 'phone':
         return `tel:${phoneNumber.replace(/\s+/g, '')}`;
       default:
-        return textContent.trim() || 'Ecode QR';
+        return textContent.trim() || 'Ectode QR';
     }
   }, [
     template,
@@ -289,7 +301,7 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
     if (template === 'phone') dataType = 'phone';
 
     onSaveToGallery({
-      title: customTitle.trim() || 'Ecode',
+      title: customTitle.trim() || 'Ectode',
       rawContent: rawQrString,
       folderId: selectedFolderId,
       dataType,
@@ -320,15 +332,24 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
     }, 900);
   };
 
-  const handleDownload = async (format: 'png' | 'svg') => {
+  const handleDownload = async (format: DownloadImageFormat) => {
     if (!canGenerate) return;
     playTapSound();
-    await downloadQr(rawQrString, customTitle || 'ecode', format, {
-      fgColor,
-      bgColor,
-      ecc,
-      codeFormat: activeCodeFormat,
-    });
+    try {
+      const res = await downloadQr(rawQrString, customTitle || 'ectode', format, {
+        fgColor,
+        bgColor,
+        ecc,
+        codeFormat: activeCodeFormat,
+      });
+      if (res.saved) {
+        setIsDownloaded(true);
+        setTimeout(() => setIsDownloaded(false), 2000);
+        onShowToast?.(`${t.savedToDownloads} ${res.fileName}`);
+      }
+    } catch {
+      onShowToast?.(t.downloadFailed);
+    }
   };
 
   const handleCopyImage = async () => {
@@ -714,7 +735,7 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
                     setCustomTitle(e.target.value);
                     setTitleManuallyEdited(true);
                   }}
-                  placeholder="Ecode"
+                  placeholder="Ectode"
                   className="w-full px-4 py-2.5 rounded-2xl bg-[#282a2f] text-xs text-[#e3e2e6] placeholder:text-[#8e918f] focus:outline-none focus:ring-2 focus:ring-[#a8f09b] border-none"
                 />
               </div>
@@ -849,27 +870,21 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
               )}
             </button>
 
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                onClick={() => handleDownload('png')}
+            <div className="grid grid-cols-2 gap-2">
+              <DownloadButton
+                defaultFormat={defaultDownloadFormat}
+                onDownload={handleDownload}
+                downloaded={isDownloaded}
                 disabled={!canGenerate}
-                className="py-2.5 px-2 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] disabled:opacity-40 text-[#e3e2e6] text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
-              >
-                <Download className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
-                <span>PNG</span>
-              </button>
-              <button
-                onClick={() => handleDownload('svg')}
-                disabled={!canGenerate}
-                className="py-2.5 px-2 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] disabled:opacity-40 text-[#e3e2e6] text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
-              >
-                <Download className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8c7fa]' : 'text-[#1d4ed8]'}`} />
-                <span>SVG</span>
-              </button>
+                layout="compact"
+                menuPlacement="top"
+                lang={lang}
+                theme={theme}
+              />
               <button
                 onClick={handleCopyImage}
                 disabled={!canGenerate}
-                className="py-2.5 px-2 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] disabled:opacity-40 text-[#e3e2e6] text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                className="py-2.5 px-3 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] disabled:opacity-40 text-[#e3e2e6] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
               >
                 {copiedImage ? (
                   <Check className={`w-3.5 h-3.5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
@@ -886,7 +901,7 @@ export function GeneratorView({ folders, lang = 'ru', theme = 'dark', onSaveToGa
       <TurnstileModal
         isOpen={showTurnstile}
         onClose={() => setShowTurnstile(false)}
-        title={customTitle || 'Ecode'}
+        title={customTitle || 'Ectode'}
         rawContent={rawQrString}
         codeFormat={activeCodeFormat}
         folderName={getLocalizedFolderName(selectedFolderId, folders.find((f) => f.id === selectedFolderId)?.name || '', lang)}

@@ -1,4 +1,4 @@
-package com.raspingmango.ecode;
+package com.raspingmango.ectode;
 
 import android.app.Activity;
 import android.content.ClipData;
@@ -29,11 +29,11 @@ public class NativeSharePlugin extends Plugin {
             return;
         }
 
-        final String title = call.getString("title", "Ecode");
+        final String title = call.getString("title", "Ectode");
         final String text = call.getString("text", "");
         final String dialogTitle = call.getString("dialogTitle", title);
         final String imageBase64 = call.getString("imageBase64", "");
-        final String fileName = sanitizeFileName(call.getString("fileName", "ecode-code"));
+        final String fileName = sanitizeFileName(call.getString("fileName", "ectode-code"));
 
         Uri imageUri = null;
         if (imageBase64 != null && !imageBase64.isEmpty()) {
@@ -107,8 +107,8 @@ public class NativeSharePlugin extends Plugin {
     }
 
     private static String sanitizeFileName(String raw) {
-        if (raw == null) return "ecode-code";
+        if (raw == null) return "ectode-code";
         String cleaned = raw.replaceAll("[^a-zA-Z0-9._-]+", "_").replaceAll("^_+|_+$", "");
-        return cleaned.isEmpty() ? "ecode-code" : cleaned;
+        return cleaned.isEmpty() ? "ectode-code" : cleaned;
     }
 }

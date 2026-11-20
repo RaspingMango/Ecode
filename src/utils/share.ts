@@ -27,7 +27,7 @@ export function sanitizeShareFileName(rawTitle: string): string {
     .replace(/[^a-zA-Z0-9_-]+/g, '_')
     .replace(/^_+|_+$/g, '')
     .slice(0, 48);
-  return cleaned || 'ecode-code';
+  return cleaned || 'ectode-code';
 }
 
 export function extractPngBase64(dataUrl?: string | null): string | null {
@@ -51,7 +51,7 @@ export async function shareCodeContent({
   dialogTitle,
   imageDataUrl,
 }: ShareCodeOptions): Promise<ShareResult> {
-  const safeTitle = title.trim() || 'Ecode';
+  const safeTitle = title.trim() || 'Ectode';
   const fileName = sanitizeShareFileName(safeTitle);
   const imageBase64 = extractPngBase64(imageDataUrl);
 

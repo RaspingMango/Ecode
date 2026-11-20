@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   X,
-  Download,
   Copy,
   Share2,
   ExternalLink,
@@ -24,6 +23,7 @@ import confetti from 'canvas-confetti';
 import {
   BARCODE_FORMATS,
   CodeFormat,
+  DownloadImageFormat,
   Folder,
   ParsedQrData,
   StoredQrItem,
@@ -48,6 +48,7 @@ import {
 import { ThemeMode } from '../utils/theme';
 import { FolderSelect } from './FolderSelect';
 import { CodeColorPicker } from './CodeColorPicker';
+import { DownloadButton } from './DownloadButton';
 
 interface CleanQrModalProps {
   isOpen: boolean;
@@ -59,6 +60,7 @@ interface CleanQrModalProps {
   folders: Folder[];
   lang?: Language;
   theme?: ThemeMode;
+  defaultDownloadFormat?: DownloadImageFormat;
   onSaveToGallery: (item: Omit<StoredQrItem, 'id' | 'createdAt'>, existingId?: string) => void;
   onShowToast?: (message: string) => void;
 }
@@ -73,6 +75,7 @@ export function CleanQrModal({
   folders,
   lang = 'ru',
   theme = 'dark',
+  defaultDownloadFormat = 'png',
   onSaveToGallery,
   onShowToast,
 }: CleanQrModalProps) {
@@ -99,7 +102,7 @@ export function CleanQrModal({
   const [isFavorite, setIsFavorite] = useState(false);
   const [isCopiedText, setIsCopiedText] = useState(false);
   const [isCopiedImage, setIsCopiedImage] = useState(false);
-  const [downloadedFormat, setDownloadedFormat] = useState<'png' | 'svg' | null>(null);
+  const [isDownloaded, setIsDownloaded] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const isBarcode = is1DBarcodeFormat(safeFormat);
@@ -203,18 +206,18 @@ export function CleanQrModal({
     }
   };
 
-  const handleDownload = async (format: 'png' | 'svg') => {
+  const handleDownload = async (format: DownloadImageFormat) => {
     playTapSound();
     try {
-      const res = await downloadQr(rawContent, title || 'ecode-code', format, {
+      const res = await downloadQr(rawContent, title || 'ectode-code', format, {
         fgColor,
         bgColor,
         ecc,
         codeFormat: safeFormat,
       });
       if (res.saved) {
-        setDownloadedFormat(format);
-        setTimeout(() => setDownloadedFormat((curr) => (curr === format ? null : curr)), 2000);
+        setIsDownloaded(true);
+        setTimeout(() => setIsDownloaded(false), 2000);
         onShowToast?.(`${t.savedToDownloads} ${res.fileName}`);
       }
     } catch {
@@ -241,7 +244,7 @@ export function CleanQrModal({
     }
 
     const result = await shareCodeContent({
-      title: title || 'Ecode',
+      title: title || 'Ectode',
       rawContent,
       dialogTitle: t.shareQr,
       imageDataUrl,
@@ -414,29 +417,16 @@ export function CleanQrModal({
               </div>
 
               {/* M3 Actions Row */}
-              <div className="grid grid-cols-4 gap-2 w-full mt-4 pt-3.5 border-t border-white/[0.04]">
-                <button
-                  onClick={() => handleDownload('png')}
-                  className="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] active:scale-95 text-[#e3e2e6] text-xs font-semibold transition-colors"
-                >
-                  {downloadedFormat === 'png' ? (
-                    <Check className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
-                  ) : (
-                    <Download className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
-                  )}
-                  {t.downloadPng}
-                </button>
-                <button
-                  onClick={() => handleDownload('svg')}
-                  className="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] active:scale-95 text-[#e3e2e6] text-xs font-semibold transition-colors"
-                >
-                  {downloadedFormat === 'svg' ? (
-                    <Check className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8c7fa]' : 'text-[#1d4ed8]'}`} />
-                  ) : (
-                    <Download className={`w-4 h-4 mb-1 ${isDark ? 'text-[#a8c7fa]' : 'text-[#1d4ed8]'}`} />
-                  )}
-                  {t.downloadSvg}
-                </button>
+              <div className="grid grid-cols-3 gap-2 w-full mt-4 pt-3.5 border-t border-white/[0.04]">
+                <DownloadButton
+                  defaultFormat={defaultDownloadFormat}
+                  onDownload={handleDownload}
+                  downloaded={isDownloaded}
+                  layout="tile"
+                  menuPlacement="bottom"
+                  lang={lang}
+                  theme={theme}
+                />
                 <button
                   onClick={handleCopyImage}
                   className="flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl bg-[#282a2f] hover:bg-[#33353a] active:scale-95 text-[#e3e2e6] text-xs font-semibold transition-colors"

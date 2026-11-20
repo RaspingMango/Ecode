@@ -1,4 +1,4 @@
-package com.raspingmango.ecode;
+package com.raspingmango.ectode;
 
 import android.app.Activity;
 import android.content.ClipData;
@@ -39,7 +39,7 @@ public class NativeClipboardPlugin extends Plugin {
         }
 
         final String imageBase64 = call.getString("imageBase64", "");
-        final String label = call.getString("label", "Ecode");
+        final String label = call.getString("label", "Ectode");
         if (imageBase64 == null || imageBase64.isEmpty()) {
             call.reject("Image data is empty");
             return;
@@ -66,7 +66,7 @@ public class NativeClipboardPlugin extends Plugin {
                 }
             }
 
-            File outFile = new File(clipDir, "ecode-copy-" + System.currentTimeMillis() + ".png");
+            File outFile = new File(clipDir, "ectode-copy-" + System.currentTimeMillis() + ".png");
             try (FileOutputStream fos = new FileOutputStream(outFile)) {
                 fos.write(bytes);
                 fos.flush();

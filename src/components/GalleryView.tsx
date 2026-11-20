@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Search,
-  SlidersHorizontal,
   Plus,
   Star,
   Trash2,
@@ -30,6 +29,7 @@ import { playTapSound, triggerHaptic } from '../utils/audio';
 import { Language, TRANSLATIONS, getLocalizedFolderName, formatCodeCount } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
 import { getFolderIcon } from './FolderSelect';
+import { SortSelect } from './SortSelect';
 
 interface GalleryViewProps {
   items: StoredQrItem[];
@@ -190,23 +190,12 @@ export function GalleryView({
         </div>
 
         {/* Sort Selector */}
-        <div className="relative shrink-0">
-          <select
-            value={sortBy}
-            onChange={(e) => {
-              playTapSound();
-              setSortBy(e.target.value as any);
-            }}
-            className="py-2.5 pl-3.5 pr-8 rounded-full bg-[#1e1f23] text-xs text-[#c4c7c5] focus:outline-none focus:ring-2 focus:ring-[#a8f09b] cursor-pointer appearance-none border border-white/[0.06]"
-            aria-label="Sort"
-          >
-            <option value="newest">{t.sortNewest}</option>
-            <option value="oldest">{t.sortOldest}</option>
-            <option value="favoritesFirst">{t.sortFavorites}</option>
-            <option value="alphabetical">{t.sortAlphabetical}</option>
-          </select>
-          <SlidersHorizontal className="w-3.5 h-3.5 text-[#8e918f] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
+        <SortSelect
+          value={sortBy}
+          onChange={setSortBy}
+          lang={lang}
+          theme={theme}
+        />
 
         {/* View mode toggle */}
         <div className="flex bg-[#1e1f23] rounded-full p-1 border border-white/[0.06]">

@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.raspingmango.ecode',
-  appName: 'Ecode',
+  appId: 'com.raspingmango.ectode',
+  appName: 'Ectode',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

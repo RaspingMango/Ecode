@@ -1,4 +1,4 @@
-package com.raspingmango.ecode;
+package com.raspingmango.ectode;
 
 public final class ScreenCaptureBridge {
 

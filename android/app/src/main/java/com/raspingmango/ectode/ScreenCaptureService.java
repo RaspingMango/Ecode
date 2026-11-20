@@ -1,4 +1,4 @@
-package com.raspingmango.ecode;
+package com.raspingmango.ectode;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -48,8 +48,8 @@ import java.util.Map;
 
 public class ScreenCaptureService extends Service {
 
-    public static final String ACTION_START = "com.raspingmango.ecode.action.START_SCREEN_CAPTURE";
-    public static final String ACTION_STOP = "com.raspingmango.ecode.action.STOP_SCREEN_CAPTURE";
+    public static final String ACTION_START = "com.raspingmango.ectode.action.START_SCREEN_CAPTURE";
+    public static final String ACTION_STOP = "com.raspingmango.ectode.action.STOP_SCREEN_CAPTURE";
 
     public static final String EXTRA_RESULT_CODE = "resultCode";
     public static final String EXTRA_DATA = "data";
@@ -62,8 +62,8 @@ public class ScreenCaptureService extends Service {
     public static final int ONGOING_NOTIF_ID = 4101;
     public static final int DETECTED_NOTIF_ID = 4102;
 
-    private static final String CHANNEL_ONGOING = "ecode_screen_capture_ongoing";
-    private static final String CHANNEL_DETECTED = "ecode_screen_capture_detected";
+    private static final String CHANNEL_ONGOING = "ectode_screen_capture_ongoing";
+    private static final String CHANNEL_DETECTED = "ectode_screen_capture_detected";
 
     private static final long SCAN_INTERVAL_MS = 400L;
     private static final long INITIAL_SETTLE_MS = 350L;
@@ -87,7 +87,7 @@ public class ScreenCaptureService extends Service {
     private long lastScanMs = 0L;
     private int scanAttemptCount = 0;
 
-    private String detectedTitle = "Ecode";
+    private String detectedTitle = "Ectode";
     private String detectedText = "Code detected — tap to open";
 
     @Override
@@ -124,13 +124,13 @@ public class ScreenCaptureService extends Service {
             return START_NOT_STICKY;
         }
 
-        final String notifTitle = nonEmptyOrDefault(intent.getStringExtra(EXTRA_NOTIF_TITLE), "Ecode");
+        final String notifTitle = nonEmptyOrDefault(intent.getStringExtra(EXTRA_NOTIF_TITLE), "Ectode");
         final String notifText = nonEmptyOrDefault(
             intent.getStringExtra(EXTRA_NOTIF_TEXT),
             "Scanning screen for QR & barcodes"
         );
         final String notifStop = nonEmptyOrDefault(intent.getStringExtra(EXTRA_NOTIF_STOP), "Stop");
-        detectedTitle = nonEmptyOrDefault(intent.getStringExtra(EXTRA_DETECTED_TITLE), "Ecode");
+        detectedTitle = nonEmptyOrDefault(intent.getStringExtra(EXTRA_DETECTED_TITLE), "Ectode");
         detectedText = nonEmptyOrDefault(
             intent.getStringExtra(EXTRA_DETECTED_TEXT),
             "Code detected — tap to view"
@@ -187,7 +187,7 @@ public class ScreenCaptureService extends Service {
             return;
         }
 
-        workerThread = new HandlerThread("EcodeScreenScan");
+        workerThread = new HandlerThread("EctodeScreenScan");
         workerThread.start();
         workerHandler = new Handler(workerThread.getLooper());
 
@@ -219,7 +219,7 @@ public class ScreenCaptureService extends Service {
 
         try {
             virtualDisplay = mediaProjection.createVirtualDisplay(
-                "EcodeScreenScanner",
+                "EctodeScreenScanner",
                 width,
                 height,
                 densityDpi,
@@ -467,7 +467,7 @@ public class ScreenCaptureService extends Service {
 
         NotificationChannel ongoing = new NotificationChannel(
             CHANNEL_ONGOING,
-            "Ecode Screen Scan",
+            "Ectode Screen Scan",
             NotificationManager.IMPORTANCE_LOW
         );
         ongoing.setShowBadge(false);
@@ -475,7 +475,7 @@ public class ScreenCaptureService extends Service {
 
         NotificationChannel detected = new NotificationChannel(
             CHANNEL_DETECTED,
-            "Ecode Detected Codes",
+            "Ectode Detected Codes",
             NotificationManager.IMPORTANCE_HIGH
         );
         detected.setShowBadge(true);

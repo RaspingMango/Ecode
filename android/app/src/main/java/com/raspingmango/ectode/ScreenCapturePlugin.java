@@ -1,4 +1,4 @@
-package com.raspingmango.ecode;
+package com.raspingmango.ectode;
 
 import android.Manifest;
 import android.app.Activity;
@@ -33,7 +33,7 @@ import com.getcapacitor.annotation.PermissionCallback;
 )
 public class ScreenCapturePlugin extends Plugin {
 
-    private static final String PREFS_NAME = "ecode_screen_capture_prefs";
+    private static final String PREFS_NAME = "ectode_screen_capture_prefs";
     private static final String KEY_NOTIF_PROMPTED = "notifications_prompted";
 
     private volatile boolean isResumed = false;
@@ -190,13 +190,13 @@ public class ScreenCapturePlugin extends Plugin {
         serviceIntent.setAction(ScreenCaptureService.ACTION_START);
         serviceIntent.putExtra(ScreenCaptureService.EXTRA_RESULT_CODE, result.getResultCode());
         serviceIntent.putExtra(ScreenCaptureService.EXTRA_DATA, result.getData());
-        serviceIntent.putExtra(ScreenCaptureService.EXTRA_NOTIF_TITLE, call.getString("notifTitle", "Ecode"));
+        serviceIntent.putExtra(ScreenCaptureService.EXTRA_NOTIF_TITLE, call.getString("notifTitle", "Ectode"));
         serviceIntent.putExtra(
             ScreenCaptureService.EXTRA_NOTIF_TEXT,
             call.getString("notifText", "Scanning screen for QR & barcodes")
         );
         serviceIntent.putExtra(ScreenCaptureService.EXTRA_NOTIF_STOP, call.getString("notifStop", "Stop"));
-        serviceIntent.putExtra(ScreenCaptureService.EXTRA_DETECTED_TITLE, call.getString("detectedTitle", "Ecode"));
+        serviceIntent.putExtra(ScreenCaptureService.EXTRA_DETECTED_TITLE, call.getString("detectedTitle", "Ectode"));
         serviceIntent.putExtra(
             ScreenCaptureService.EXTRA_DETECTED_TEXT,
             call.getString("detectedText", "Code detected — tap to view")

@@ -24,7 +24,7 @@ export function sanitizeDownloadFileName(rawName: string, extension: string): st
     .replace(/\s+/g, ' ')
     .replace(/^_+|_+$/g, '')
     .slice(0, 64);
-  const safeBase = base || 'ecode-code';
+  const safeBase = base || 'ectode-code';
   return ext ? `${safeBase}.${ext}` : safeBase;
 }
 
@@ -100,7 +100,7 @@ export async function saveFileToDevice(options: {
 
 export async function copyImageToDeviceClipboard(
   dataUrl: string,
-  label: string = 'Ecode'
+  label: string = 'Ectode'
 ): Promise<boolean> {
   if (Capacitor.isNativePlatform()) {
     try {

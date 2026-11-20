@@ -1,4 +1,4 @@
-package com.raspingmango.ecode;
+package com.raspingmango.ectode;
 
 import android.content.Intent;
 import android.os.Bundle;

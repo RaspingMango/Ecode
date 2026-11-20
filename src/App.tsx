@@ -23,6 +23,7 @@ import { FolderModal } from './components/FolderModal';
 import { TurnstileModal } from './components/TurnstileModal';
 import {
   CodeFormat,
+  DownloadImageFormat,
   StoredQrItem,
   Folder,
   mergeDemoItems,
@@ -38,6 +39,8 @@ import {
   saveDemoMode,
   loadShowGalleryBadge,
   saveShowGalleryBadge,
+  loadDownloadFormat,
+  saveDownloadFormat,
 } from './utils/storage';
 import { playTapSound, triggerHaptic } from './utils/audio';
 import { saveFileToDevice } from './utils/nativeFiles';
@@ -61,6 +64,7 @@ export default function App() {
   const [folders, setFolders] = useState<Folder[]>(() => loadStoredFolders());
   const [demoMode, setDemoMode] = useState<boolean>(() => loadDemoMode());
   const [showGalleryBadge, setShowGalleryBadge] = useState<boolean>(() => loadShowGalleryBadge());
+  const [downloadFormat, setDownloadFormat] = useState<DownloadImageFormat>(() => loadDownloadFormat());
   const [hapticEnabled, setHapticEnabled] = useState(true);
 
   const t = TRANSLATIONS[lang];
@@ -106,6 +110,10 @@ export default function App() {
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   useEffect(() => {
     return () => {
@@ -300,7 +308,7 @@ export default function App() {
 
   const handleExportBackup = async () => {
     const dataStr = JSON.stringify(items, null, 2);
-    const fileName = `ecode-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    const fileName = `ectode-backup-${new Date().toISOString().slice(0, 10)}.json`;
     try {
       const res = await saveFileToDevice({
         fileName,
@@ -329,7 +337,7 @@ export default function App() {
           <button
             type="button"
             onClick={handleLogoTap}
-            aria-label="Ecode"
+            aria-label="Ectode"
             className="flex items-center gap-3 text-left rounded-2xl focus:outline-none active:scale-95 transition-transform"
           >
             <div
@@ -344,7 +352,7 @@ export default function App() {
 
             <div>
               <h1 className="font-extrabold text-lg tracking-tight text-[#e3e2e6] leading-tight">
-                Ecode
+                Ectode
               </h1>
               <p className="text-xs text-[#8e918f] -mt-0.5 font-medium">
                 {activeSectionTitle}
@@ -453,8 +461,10 @@ export default function App() {
             folders={folders}
             lang={lang}
             theme={theme}
+            defaultDownloadFormat={downloadFormat}
             onSaveToGallery={handleSaveToGallery}
             onOpenGallery={() => setActiveTab('gallery')}
+            onShowToast={showToast}
           />
         )}
 
@@ -475,6 +485,11 @@ export default function App() {
                 saveShowGalleryBadge(next);
                 return next;
               });
+            }}
+            downloadFormat={downloadFormat}
+            onDownloadFormatChange={(format) => {
+              setDownloadFormat(format);
+              saveDownloadFormat(format);
             }}
             onExportBackup={handleExportBackup}
             onImportBackup={handleImportBackup}
@@ -644,6 +659,7 @@ export default function App() {
           folders={folders}
           lang={lang}
           theme={theme}
+          defaultDownloadFormat={downloadFormat}
           onSaveToGallery={handleSaveToGallery}
           onShowToast={showToast}
         />
@@ -698,7 +714,7 @@ export default function App() {
                   <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                     theme === 'dark' ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
                   }`}>
-                    v1.3.4
+                    v1.4.0
                   </span>
                 </div>
               </div>
@@ -732,7 +748,7 @@ export default function App() {
                 </span>
               </div>
               <a
-                href="https://github.com/RaspingMango/Ecode"
+                href="https://github.com/RaspingMango/Ectode"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`flex items-center justify-between gap-3 p-3 rounded-2xl transition-colors border ${
@@ -746,7 +762,7 @@ export default function App() {
                   <div className="min-w-0">
                     <div className="font-bold text-xs leading-tight">{t.githubRepoTitle}</div>
                     <div className={`text-[11px] truncate ${theme === 'dark' ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`}>
-                      github.com/RaspingMango/Ecode
+                      github.com/RaspingMango/Ectode
                     </div>
                   </div>
                 </div>

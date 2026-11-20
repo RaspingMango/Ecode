@@ -1,4 +1,4 @@
-package com.raspingmango.ecode;
+package com.raspingmango.ectode;
 
 import android.content.Intent;
 
@@ -7,8 +7,8 @@ public final class QuickActionBridge {
     public static final String ACTION_CAMERA = "camera";
     public static final String ACTION_SCREEN = "screen";
 
-    public static final String INTENT_ACTION_CAMERA = "com.raspingmango.ecode.action.QUICK_SCAN_CAMERA";
-    public static final String INTENT_ACTION_SCREEN = "com.raspingmango.ecode.action.QUICK_SCAN_SCREEN";
+    public static final String INTENT_ACTION_CAMERA = "com.raspingmango.ectode.action.QUICK_SCAN_CAMERA";
+    public static final String INTENT_ACTION_SCREEN = "com.raspingmango.ectode.action.QUICK_SCAN_SCREEN";
     public static final String EXTRA_QUICK_ACTION = "quickAction";
 
     public static final class QuickActionEvent {

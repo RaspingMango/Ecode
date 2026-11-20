@@ -1,4 +1,4 @@
-package com.raspingmango.ecode;
+package com.raspingmango.ectode;
 
 import android.Manifest;
 import android.content.ContentResolver;
@@ -46,7 +46,7 @@ public class NativeDownloadPlugin extends Plugin {
             return;
         }
 
-        final String rawFileName = call.getString("fileName", "ecode-code.png");
+        final String rawFileName = call.getString("fileName", "ectode-code.png");
         final String mimeType = call.getString("mimeType", "application/octet-stream");
         final String base64Data = call.getString("base64Data", "");
 
@@ -73,7 +73,7 @@ public class NativeDownloadPlugin extends Plugin {
             call.reject("Context not available");
             return;
         }
-        final String rawFileName = call.getString("fileName", "ecode-code.png");
+        final String rawFileName = call.getString("fileName", "ectode-code.png");
         final String mimeType = call.getString("mimeType", "application/octet-stream");
         final String base64Data = call.getString("base64Data", "");
         performSave(call, context, rawFileName, mimeType, base64Data);
@@ -105,7 +105,7 @@ public class NativeDownloadPlugin extends Plugin {
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.Downloads.DISPLAY_NAME, safeFileName);
                 values.put(MediaStore.Downloads.MIME_TYPE, mimeType);
-                values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/Ecode");
+                values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/Ectode");
                 values.put(MediaStore.Downloads.IS_PENDING, 1);
 
                 ContentResolver resolver = context.getContentResolver();
@@ -137,7 +137,7 @@ public class NativeDownloadPlugin extends Plugin {
             } else {
                 File baseDir;
                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                    baseDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Ecode");
+                    baseDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Ectode");
                 } else {
                     File appDownloads = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
                     baseDir = appDownloads != null ? appDownloads : new File(context.getFilesDir(), "Downloads");
@@ -187,9 +187,9 @@ public class NativeDownloadPlugin extends Plugin {
 
     private static String sanitizeFileName(String raw) {
         if (raw == null || raw.trim().isEmpty()) {
-            return "ecode-code.png";
+            return "ectode-code.png";
         }
         String cleaned = raw.replaceAll("[\\\\/:*?\"<>|]+", "_").trim();
-        return cleaned.isEmpty() ? "ecode-code.png" : cleaned;
+        return cleaned.isEmpty() ? "ectode-code.png" : cleaned;
     }
 }

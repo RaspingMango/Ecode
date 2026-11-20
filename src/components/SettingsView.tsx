@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Language, TRANSLATIONS } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
+import { DownloadImageFormat, DOWNLOAD_IMAGE_FORMATS } from '../utils/qrLogic';
 import { playTapSound, triggerHaptic } from '../utils/audio';
 import {
   isQuickTilesNativePlatform,
@@ -40,6 +41,8 @@ interface SettingsViewProps {
   onToggleHaptic: () => void;
   showGalleryBadge: boolean;
   onToggleGalleryBadge: () => void;
+  downloadFormat: DownloadImageFormat;
+  onDownloadFormatChange: (format: DownloadImageFormat) => void;
   onExportBackup: () => void;
   onImportBackup: (items: any[]) => void;
   onOpenAbout: () => void;
@@ -57,6 +60,8 @@ export function SettingsView({
   onToggleHaptic,
   showGalleryBadge,
   onToggleGalleryBadge,
+  downloadFormat,
+  onDownloadFormatChange,
   onExportBackup,
   onImportBackup,
   onOpenAbout,
@@ -325,6 +330,73 @@ export function SettingsView({
         </div>
       </div>
 
+      {/* 2.5. Default Download Format Section */}
+      <div className={`rounded-[28px] p-5 shadow-xl transition-colors duration-200 border space-y-3.5 ${
+        isDark ? 'bg-[#1e1f23] border-white/[0.04]' : 'bg-white border-black/[0.06] shadow-sm'
+      }`}>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Download className={`w-4 h-4 shrink-0 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
+            <h3 className="font-bold text-sm tracking-tight truncate">
+              {t.downloadFormatLabel}
+            </h3>
+          </div>
+          <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full shrink-0 ${
+            isDark ? 'bg-[#282a2f] text-[#c4c7c5]' : 'bg-[#e9ece5] text-[#575a56]'
+          }`}>
+            {downloadFormat.toUpperCase()}
+          </span>
+        </div>
+
+        <div
+          role="radiogroup"
+          aria-label={t.downloadFormatLabel}
+          className={`p-1 rounded-full flex gap-1 border ${
+            isDark ? 'bg-[#121316] border-white/[0.04]' : 'bg-[#f2f4ef] border-black/[0.04]'
+          }`}
+        >
+          {DOWNLOAD_IMAGE_FORMATS.map((fmt) => {
+            const isSelected = downloadFormat === fmt;
+            const label =
+              fmt === 'png'
+                ? t.downloadPng
+                : fmt === 'svg'
+                  ? t.downloadSvg
+                  : t.downloadJpeg;
+
+            return (
+              <button
+                key={fmt}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                onClick={() => {
+                  playTapSound();
+                  triggerHaptic(15);
+                  onDownloadFormatChange(fmt);
+                }}
+                className={`flex-1 py-2.5 px-3 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  isSelected
+                    ? isDark
+                      ? 'bg-[#394738] text-[#a8f09b] shadow-sm'
+                      : 'bg-white text-[#2e6c31] shadow-sm'
+                    : isDark
+                      ? 'text-[#8e918f] hover:text-[#e3e2e6]'
+                      : 'text-[#575a56] hover:text-[#191c19]'
+                }`}
+              >
+                <span>{label}</span>
+                {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+
+        <p className={`text-[11px] leading-relaxed ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
+          {t.downloadFormatDesc}
+        </p>
+      </div>
+
       {/* 3. Feedback: Sound & Haptics */}
       <div className={`rounded-[28px] p-5 shadow-xl transition-colors duration-200 border space-y-3 ${
         isDark ? 'bg-[#1e1f23] border-white/[0.04]' : 'bg-white border-black/[0.06] shadow-sm'
@@ -581,7 +653,7 @@ export function SettingsView({
             <Info className={`w-5 h-5 ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`} />
             <div>
               <div className="text-xs font-bold">
-                Ecode • {t.appVersion} 1.3.4
+                Ectode • {t.appVersion} 1.4.0
               </div>
               <p className={`text-[10px] ${isDark ? 'text-[#8e918f]' : 'text-[#575a56]'}`}>
                 Offline First • Private
@@ -606,7 +678,7 @@ export function SettingsView({
         </div>
 
         <a
-          href="https://github.com/RaspingMango/Ecode"
+          href="https://github.com/RaspingMango/Ectode"
           target="_blank"
           rel="noopener noreferrer"
           className={`w-full p-3 rounded-2xl flex items-center justify-between gap-2 transition-colors border ${
@@ -620,7 +692,7 @@ export function SettingsView({
             <div className="min-w-0">
               <div className="text-xs font-semibold leading-tight">{t.githubRepoTitle}</div>
               <div className={`text-[11px] truncate ${isDark ? 'text-[#a8f09b]' : 'text-[#2e6c31]'}`}>
-                https://github.com/RaspingMango/Ecode
+                https://github.com/RaspingMango/Ectode
               </div>
             </div>
           </div>

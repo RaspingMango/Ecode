@@ -2,7 +2,7 @@ export type ThemeMode = 'dark' | 'light';
 
 export function getInitialTheme(): ThemeMode {
   try {
-    const saved = localStorage.getItem('ecode_theme');
+    const saved = localStorage.getItem('ectode_theme') || localStorage.getItem('ecode_theme');
     if (saved === 'dark' || saved === 'light') {
       return saved;
     }
@@ -30,7 +30,7 @@ export function applyTheme(theme: ThemeMode): void {
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute('content', '#121316');
     }
-    localStorage.setItem('ecode_theme', theme);
+    localStorage.setItem('ectode_theme', theme);
     const systemBars = (window as unknown as {
       Capacitor?: { Plugins?: { SystemBars?: { setStyle?: (opts: { style: string }) => Promise<void> } } };
     }).Capacitor?.Plugins?.SystemBars;

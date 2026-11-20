@@ -67,6 +67,23 @@ export const BARCODE_FORMATS: CodeFormat[] = [
   'CODABAR',
 ];
 
+export type DownloadImageFormat = 'png' | 'svg' | 'jpeg';
+
+export const DOWNLOAD_IMAGE_FORMATS: readonly DownloadImageFormat[] = ['png', 'svg', 'jpeg'] as const;
+
+export function normalizeDownloadImageFormat(raw?: string | null): DownloadImageFormat {
+  const normalized = (raw || '').trim().toLowerCase();
+  if (normalized === 'svg') return 'svg';
+  if (normalized === 'jpeg' || normalized === 'jpg') return 'jpeg';
+  return 'png';
+}
+
+export function getDownloadFileExtension(format: DownloadImageFormat): 'png' | 'svg' | 'jpg' {
+  if (format === 'svg') return 'svg';
+  if (format === 'jpeg') return 'jpg';
+  return 'png';
+}
+
 export function is1DBarcodeFormat(format?: CodeFormat | null): boolean {
   return Boolean(format && format !== 'QR_CODE');
 }
@@ -227,12 +244,12 @@ export function getSampleBarcodeValue(format: CodeFormat): string {
     case 'EAN_8': return '46012340';
     case 'UPC_A': return '036000291452';
     case 'UPC_E': return '01234565';
-    case 'CODE_39': return 'ECODE-2026';
+    case 'CODE_39': return 'ECTODE-2026';
     case 'ITF': return '123456789012';
     case 'CODABAR': return 'A40156B';
     case 'CODE_128':
     default:
-      return 'ECODE-8849201';
+      return 'ECTODE-8849201';
   }
 }
 

@@ -17,11 +17,21 @@ import {
   mergeDemoItems,
   stripDemoItems,
   BARCODE_FORMATS,
+  DOWNLOAD_IMAGE_FORMATS,
+  normalizeDownloadImageFormat,
+  getDownloadFileExtension,
   StoredQrItem,
 } from './qrLogic';
 import { scanBarcodeWithZxing, mapZxingFormatToCodeFormat, ZXing } from './qrScanner';
 import { hexToRgb, rgbToHex, normalizeHexColor, getColorContrastRatio } from './color';
-import { getLocalizedDetailKey, getLocalizedDetailValue, getLocalizedFolderName, formatCodeCount } from './i18n';
+import {
+  getLocalizedDetailKey,
+  getLocalizedDetailValue,
+  getLocalizedFolderName,
+  formatCodeCount,
+  resolveDeviceLanguage,
+  TRANSLATIONS,
+} from './i18n';
 import { sanitizeShareFileName, extractPngBase64 } from './share';
 import { sanitizeDownloadFileName, utf8ToBase64 } from './nativeFiles';
 import {
@@ -72,10 +82,10 @@ test('parseQrContent classifies 1D barcodes cleanly', () => {
   assert.equal(retail.displayTitle, 'EAN-13: 4607004650932');
   assert.equal(suggestFolderForType(retail.type), 'loyalty');
 
-  const code128 = parseQrContent('ECODE-8849201', 'CODE_128');
+  const code128 = parseQrContent('ECTODE-8849201', 'CODE_128');
   assert.equal(code128.type, 'barcode');
   assert.equal(code128.codeFormat, 'CODE_128');
-  assert.equal(code128.displayTitle, 'Code 128: ECODE-8849201');
+  assert.equal(code128.displayTitle, 'Code 128: ECTODE-8849201');
   assert.equal(suggestFolderForType(code128.type), 'loyalty');
 });
 
@@ -117,9 +127,9 @@ test('GS1 check digit calculation and EAN/UPC validation', () => {
   assert.equal(validateBarcodePayload('036000291452', 'UPC_A').valid, true);
 
   // Code 128, Code 39, ITF, Codabar
-  assert.equal(validateBarcodePayload('ECODE-8849201', 'CODE_128').valid, true);
+  assert.equal(validateBarcodePayload('ECTODE-8849201', 'CODE_128').valid, true);
   assert.equal(validateBarcodePayload('Кириллица', 'CODE_128').errorKey, 'code128Ascii');
-  assert.equal(validateBarcodePayload('ecode-2026', 'CODE_39').normalizedValue, 'ECODE-2026');
+  assert.equal(validateBarcodePayload('ectode-2026', 'CODE_39').normalizedValue, 'ECTODE-2026');
   assert.equal(validateBarcodePayload('12345', 'ITF').errorKey, 'itfDigits');
   assert.equal(validateBarcodePayload('123456', 'ITF').valid, true);
   assert.equal(validateBarcodePayload('A40156B', 'CODABAR').valid, true);
@@ -144,7 +154,7 @@ test('barcode format helpers and all sample values validate & encode with JsBarc
 test('scanBarcodeWithZxing decodes generated EAN-13 and CODE_128 barcode pixels round-trip', () => {
   const cases: Array<{ value: string; jsFmt: string; expected: string }> = [
     { value: '4607004650932', jsFmt: 'EAN13', expected: 'EAN_13' },
-    { value: 'ECODE-8849201', jsFmt: 'CODE128', expected: 'CODE_128' },
+    { value: 'ECTODE-8849201', jsFmt: 'CODE128', expected: 'CODE_128' },
   ];
 
   for (const c of cases) {
@@ -274,7 +284,7 @@ test('formatCodeCount handles Russian and English plural forms', () => {
 test('resolveSafeCodeFormat preserves valid barcode formats and falls back to QR_CODE on mismatch', () => {
   assert.equal(resolveSafeCodeFormat('4607004650932', 'EAN_13'), 'EAN_13');
   assert.equal(resolveSafeCodeFormat('TICKET:SU-2026-VIP', 'EAN_13'), 'QR_CODE');
-  assert.equal(resolveSafeCodeFormat('ECODE-8849201', 'CODE_128'), 'CODE_128');
+  assert.equal(resolveSafeCodeFormat('ECTODE-8849201', 'CODE_128'), 'CODE_128');
   assert.equal(resolveSafeCodeFormat('https://example.com', undefined), 'QR_CODE');
 });
 
@@ -328,8 +338,8 @@ test('mergeDemoItems and stripDemoItems preserve user items while toggling demo 
 
 test('share helpers sanitize file names and extract PNG base64 payloads safely', () => {
   assert.equal(sanitizeShareFileName('My Ticket 2026!'), 'My_Ticket_2026');
-  assert.equal(sanitizeShareFileName('Билет: Концерт'), 'ecode-code');
-  assert.equal(sanitizeShareFileName('   '), 'ecode-code');
+  assert.equal(sanitizeShareFileName('Билет: Концерт'), 'ectode-code');
+  assert.equal(sanitizeShareFileName('   '), 'ectode-code');
 
   assert.equal(extractPngBase64('data:image/png;base64,iVBORw0KGgo='), 'iVBORw0KGgo=');
   assert.equal(extractPngBase64('data:text/plain;base64,abc'), null);
@@ -338,7 +348,7 @@ test('share helpers sanitize file names and extract PNG base64 payloads safely',
 
 test('download helpers sanitize filenames and encode UTF-8 SVG/JSON cleanly to base64', () => {
   assert.equal(sanitizeDownloadFileName('Билет: Концерт / VIP', 'png'), 'Билет_ Концерт _ VIP.png');
-  assert.equal(sanitizeDownloadFileName('   ', 'svg'), 'ecode-code.svg');
+  assert.equal(sanitizeDownloadFileName('   ', 'svg'), 'ectode-code.svg');
 
   const svg = '<svg xmlns="http://www.w3.org/2000/svg"><text>Привет</text></svg>';
   const encoded = utf8ToBase64(svg);
@@ -355,14 +365,14 @@ test('screen capture helpers map native ZXing formats, route platform cleanly, a
   assert.equal(mapNativeCodeFormat('AZTEC'), 'QR_CODE');
   assert.equal(mapNativeCodeFormat(undefined), 'QR_CODE');
 
-  const first = shouldAcceptDetectedCode({ data: 'https://ecode.app', format: 'QR_CODE' }, null, 0, 1000);
+  const first = shouldAcceptDetectedCode({ data: 'https://ectode.app', format: 'QR_CODE' }, null, 0, 1000);
   assert.equal(first.accept, true);
-  assert.equal(first.key, 'QR_CODE::https://ecode.app');
+  assert.equal(first.key, 'QR_CODE::https://ectode.app');
 
-  const dup = shouldAcceptDetectedCode({ data: 'https://ecode.app', format: 'QR_CODE' }, first.key, 1000, 1500);
+  const dup = shouldAcceptDetectedCode({ data: 'https://ectode.app', format: 'QR_CODE' }, first.key, 1000, 1500);
   assert.equal(dup.accept, false);
 
-  const afterWindow = shouldAcceptDetectedCode({ data: 'https://ecode.app', format: 'QR_CODE' }, first.key, 1000, 3500);
+  const afterWindow = shouldAcceptDetectedCode({ data: 'https://ectode.app', format: 'QR_CODE' }, first.key, 1000, 3500);
   assert.equal(afterWindow.accept, true);
 
   const empty = shouldAcceptDetectedCode({ data: '   ', format: 'QR_CODE' }, first.key, 1000, 1500);
@@ -371,9 +381,9 @@ test('screen capture helpers map native ZXing formats, route platform cleanly, a
 
 test('quick action helpers normalize intents, map scanner modes, and format tile pin outcomes', () => {
   assert.equal(normalizeQuickAction('camera'), 'camera');
-  assert.equal(normalizeQuickAction('com.raspingmango.ecode.action.QUICK_SCAN_CAMERA'), 'camera');
+  assert.equal(normalizeQuickAction('com.raspingmango.ectode.action.QUICK_SCAN_CAMERA'), 'camera');
   assert.equal(normalizeQuickAction('screen'), 'screen');
-  assert.equal(normalizeQuickAction('com.raspingmango.ecode.action.QUICK_SCAN_SCREEN'), 'screen');
+  assert.equal(normalizeQuickAction('com.raspingmango.ectode.action.QUICK_SCAN_SCREEN'), 'screen');
   assert.equal(normalizeQuickAction('unknown'), null);
   assert.equal(normalizeQuickAction(undefined), null);
 
@@ -389,6 +399,41 @@ test('quick action helpers normalize intents, map scanner modes, and format tile
   assert.match(buildTilePinOutcomeMessage('already_added', 'en'), /already/i);
   assert.match(buildTilePinOutcomeMessage('unsupported', 'ru'), /шторку/i);
   assert.match(buildTilePinOutcomeMessage('dismissed', 'en'), /cancelled/i);
+});
+
+test('turnstileTitle omits brand prefix and matches clean brightness labels', () => {
+  assert.equal(TRANSLATIONS.ru.turnstileTitle, 'Максимальная яркость');
+  assert.equal(TRANSLATIONS.en.turnstileTitle, 'Max Brightness');
+});
+
+test('download format helpers support PNG, SVG, and JPEG normalization & extensions', () => {
+  assert.deepEqual(DOWNLOAD_IMAGE_FORMATS, ['png', 'svg', 'jpeg']);
+  assert.equal(normalizeDownloadImageFormat('png'), 'png');
+  assert.equal(normalizeDownloadImageFormat('SVG'), 'svg');
+  assert.equal(normalizeDownloadImageFormat('jpeg'), 'jpeg');
+  assert.equal(normalizeDownloadImageFormat('jpg'), 'jpeg');
+  assert.equal(normalizeDownloadImageFormat('webp'), 'png');
+  assert.equal(normalizeDownloadImageFormat(undefined), 'png');
+
+  assert.equal(getDownloadFileExtension('png'), 'png');
+  assert.equal(getDownloadFileExtension('svg'), 'svg');
+  assert.equal(getDownloadFileExtension('jpeg'), 'jpg');
+  assert.equal(sanitizeDownloadFileName('My Code', getDownloadFileExtension('jpeg')), 'My Code.jpg');
+
+  assert.equal(TRANSLATIONS.ru.downloadJpeg, 'JPEG');
+  assert.equal(TRANSLATIONS.en.downloadJpeg, 'JPEG');
+});
+
+test('resolveDeviceLanguage defaults to ru for Russian locales and en for all other locales', () => {
+  assert.equal(resolveDeviceLanguage('ru'), 'ru');
+  assert.equal(resolveDeviceLanguage('ru-RU'), 'ru');
+  assert.equal(resolveDeviceLanguage('RU_KZ'), 'ru');
+  assert.equal(resolveDeviceLanguage('en-US'), 'en');
+  assert.equal(resolveDeviceLanguage('de-DE'), 'en');
+  assert.equal(resolveDeviceLanguage('uk-UA'), 'en');
+  assert.equal(resolveDeviceLanguage('run'), 'en');
+  assert.equal(resolveDeviceLanguage(''), 'en');
+  assert.equal(resolveDeviceLanguage(undefined), 'en');
 });
 
 

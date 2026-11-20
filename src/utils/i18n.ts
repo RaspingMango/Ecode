@@ -6,7 +6,7 @@ export const TRANSLATIONS = {
     appSlogan: 'Сканер и кошелёк кодов',
     soundOn: 'Звук включен',
     soundOff: 'Звук выключен',
-    aboutApp: 'О приложении Ecode',
+    aboutApp: 'О приложении Ectode',
 
     // Bottom Navigation
     tabScanner: 'Сканер',
@@ -16,7 +16,7 @@ export const TRANSLATIONS = {
 
     // Settings Screen
     settingsTitle: 'Настройки',
-    settingsSubtitle: 'Тема, язык и параметры Ecode',
+    settingsSubtitle: 'Тема, язык и параметры Ectode',
     appearanceSection: 'Внешний вид',
     themeLabel: 'Тема оформления',
     themeDark: 'Тёмная',
@@ -34,6 +34,11 @@ export const TRANSLATIONS = {
     hapticDesc: 'Тактильная вибрация при сканировании',
     galleryBadgeTitle: 'Счётчик кодов на вкладке',
     galleryBadgeDesc: 'Показывать количество кодов в нижнем меню',
+    downloadFormatLabel: 'Формат скачивания по умолчанию',
+    downloadFormatDesc: 'Нажатие скачивает в выбранном формате, а зажатие открывает меню PNG / SVG / JPEG',
+    downloadFormatPngDesc: 'Чёткое изображение без сжатия',
+    downloadFormatSvgDesc: 'Вектор для печати и редакторов',
+    downloadFormatJpegDesc: 'Компактный растровый файл .jpg',
     dataSection: 'Управление данными',
     backupDataTitle: 'Скачать резервную копию',
     backupDataDesc: 'Сохранить все коды и папки в JSON-файл',
@@ -45,17 +50,17 @@ export const TRANSLATIONS = {
     downloadFailed: 'Не удалось сохранить файл',
     clipboardPermissionDenied: 'Доступ к буферу обмена отклонён. Выберите скриншот из галереи.',
     quickTilesSection: 'Быстрые действия в шторке',
-    quickTilesDesc: 'Закрепите кнопки Ecode рядом с Wi-Fi и Bluetooth для мгновенного запуска камеры или сканирования экрана.',
-    pinCameraTileTitle: 'Ecode: Камера',
+    quickTilesDesc: 'Закрепите кнопки Ectode рядом с Wi-Fi и Bluetooth для мгновенного запуска камеры или сканирования экрана.',
+    pinCameraTileTitle: 'Ectode: Камера',
     pinCameraTileDesc: 'Открывает камеру для быстрого сканирования',
-    pinScreenTileTitle: 'Ecode: Экран',
+    pinScreenTileTitle: 'Ectode: Экран',
     pinScreenTileDesc: 'Ищет QR и штрихкод прямо с экрана',
     pinTileBtn: 'Закрепить',
-    quickTilesManualHint: 'Также кнопки можно добавить вручную: опустите шторку → нажмите редактирование (✏️) → перетащите плитки Ecode.',
+    quickTilesManualHint: 'Также кнопки можно добавить вручную: опустите шторку → нажмите редактирование (✏️) → перетащите плитки Ectode.',
     tilePinAdded: 'Кнопка закреплена в панели быстрых действий',
     tilePinAlreadyAdded: 'Эта кнопка уже закреплена в шторке',
     tilePinDismissed: 'Добавление кнопки отменено',
-    tilePinManualTip: 'Откройте шторку, нажмите редактирование (✏️) и перетащите плитку Ecode наверх.',
+    tilePinManualTip: 'Откройте шторку, нажмите редактирование (✏️) и перетащите плитку Ectode наверх.',
     tilePinError: 'Не удалось открыть окно закрепления. Добавьте плитку через редактирование шторки.',
     aboutSection: 'О приложении',
     appVersion: 'Версия',
@@ -74,11 +79,11 @@ export const TRANSLATIONS = {
     screenModeTip: 'Выберите окно с QR или штрихкодом для распознавания.',
     screenModeTipNative: 'Нажмите кнопку ниже, выберите «Весь экран» или приложение в системном окне и переключитесь на нужный код.',
     scanningScreenNativeTitle: 'Сканирование экрана активно',
-    scanningScreenNativeDesc: 'Переключитесь в мессенджер, браузер или билет — как только QR или штрихкод появится на экране, Ecode распознает его автоматически.',
-    screenNotifTitle: 'Ecode • Сканирование экрана',
+    scanningScreenNativeDesc: 'Переключитесь в мессенджер, браузер или билет — как только QR или штрихкод появится на экране, Ectode распознает его автоматически.',
+    screenNotifTitle: 'Ectode • Сканирование экрана',
     screenNotifText: 'Откройте приложение с QR или штрихкодом',
     screenNotifStop: 'Остановить',
-    screenDetectedTitle: 'Код распознан в Ecode',
+    screenDetectedTitle: 'Код распознан в Ectode',
     screenDetectedText: 'Нажмите, чтобы открыть и сохранить код',
     screenshotTitle: 'Скриншот или фото',
     screenshotDesc: 'Выберите изображение с QR-кодом или штрихкодом для распознавания.',
@@ -103,8 +108,12 @@ export const TRANSLATIONS = {
     vectorOriginalBadge: 'Векторная графика',
     eccCorrection: 'Коррекция',
     formatBadgeLabel: 'Формат',
+    downloadBtn: 'Скачать',
+    downloadedBtn: 'Сохранено',
+    downloadMenuTitle: 'Формат файла',
     downloadPng: 'PNG',
     downloadSvg: 'SVG',
+    downloadJpeg: 'JPEG',
     copyImage: 'Картинка',
     copiedImage: 'Готово',
     shareQr: 'Поделиться',
@@ -131,7 +140,7 @@ export const TRANSLATIONS = {
     savedSuccessText: 'Сохранено в',
 
     // Turnstile Modal
-    turnstileTitle: 'Ecode • Максимальная яркость',
+    turnstileTitle: 'Максимальная яркость',
     turnstileTip: 'Поднесите экран к сканеру турникета или кассы',
     turnstileClose: 'Готово',
 
@@ -152,7 +161,7 @@ export const TRANSLATIONS = {
     moveToTitle: 'Переместить в:',
     deleteTooltip: 'Удалить код',
     deleteConfirmTitle: 'Удалить код?',
-    deleteConfirm: 'Удалить этот код из галереи Ecode?',
+    deleteConfirm: 'Удалить этот код из галереи Ectode?',
     deleteBtn: 'Удалить',
     backupBtn: 'Резервная копия',
     restoreBtn: 'Восстановить',
@@ -160,7 +169,7 @@ export const TRANSLATIONS = {
     backupError: 'Не удалось прочитать файл резервной копии.',
     sortNewest: 'Новые',
     sortOldest: 'Старые',
-    sortFavorites: '⭐ Избранные',
+    sortFavorites: 'Избранные',
     sortAlphabetical: 'А-Я',
     sourceCamera: 'Камера',
     sourceScreen: 'Захват экрана',
@@ -172,7 +181,7 @@ export const TRANSLATIONS = {
     liveVectorPreview: 'Предпросмотр',
     pristineVectorQuality: 'Векторная графика',
     saveToGalleryGen: 'Сохранить в галерею',
-    savedToGalleryGen: 'Сохранено в Ecode!',
+    savedToGalleryGen: 'Сохранено в Ectode!',
     templateText: 'Текст',
     templateUrl: 'Ссылка',
     templateWifi: 'Wi-Fi',
@@ -231,7 +240,7 @@ export const TRANSLATIONS = {
     blueLabel: 'B',
 
     // Folder Modal & Management
-    newFolderTitle: 'Новая папка в Ecode',
+    newFolderTitle: 'Новая папка в Ectode',
     editFolderTitle: 'Редактировать папку',
     manageFoldersTitle: 'Управление папками',
     manageFoldersDesc: 'Создавайте, настраивайте иконки или удаляйте папки',
@@ -251,7 +260,7 @@ export const TRANSLATIONS = {
     saveFolderBtn: 'Сохранить',
 
     // About Modal
-    aboutTitle: 'Ecode',
+    aboutTitle: 'Ectode',
     feature1Title: 'Захват экрана и камеры',
     feature1Desc: 'Считывайте QR-коды и штрихкоды прямо с экрана в любых приложениях без второго устройства.',
     feature2Title: 'Перерисовка кода',
@@ -274,7 +283,7 @@ export const TRANSLATIONS = {
     appSlogan: 'Code Scanner & Wallet',
     soundOn: 'Sound enabled',
     soundOff: 'Sound muted',
-    aboutApp: 'About Ecode',
+    aboutApp: 'About Ectode',
 
     // Bottom Navigation
     tabScanner: 'Scanner',
@@ -284,7 +293,7 @@ export const TRANSLATIONS = {
 
     // Settings Screen
     settingsTitle: 'Settings',
-    settingsSubtitle: 'Theme, language & Ecode options',
+    settingsSubtitle: 'Theme, language & Ectode options',
     appearanceSection: 'Appearance',
     themeLabel: 'Color Theme',
     themeDark: 'Dark',
@@ -302,6 +311,11 @@ export const TRANSLATIONS = {
     hapticDesc: 'Tactile vibration when scanning',
     galleryBadgeTitle: 'Gallery Tab Counter',
     galleryBadgeDesc: 'Show saved code count in bottom navigation',
+    downloadFormatLabel: 'Default Download Format',
+    downloadFormatDesc: 'Tap downloads in this format; press & hold opens PNG / SVG / JPEG menu',
+    downloadFormatPngDesc: 'Lossless high-resolution image',
+    downloadFormatSvgDesc: 'Vector file for print & design tools',
+    downloadFormatJpegDesc: 'Compact .jpg image file',
     dataSection: 'Data Management',
     backupDataTitle: 'Download Backup',
     backupDataDesc: 'Export all codes and folders to JSON file',
@@ -313,19 +327,19 @@ export const TRANSLATIONS = {
     downloadFailed: 'Failed to save file',
     clipboardPermissionDenied: 'Clipboard read permission denied. Please pick a screenshot from files.',
     quickTilesSection: 'Quick Settings Tiles',
-    quickTilesDesc: 'Pin Ecode shortcuts in your Android Quick Settings shade alongside Wi-Fi and Bluetooth.',
-    pinCameraTileTitle: 'Ecode: Camera',
+    quickTilesDesc: 'Pin Ectode shortcuts in your Android Quick Settings shade alongside Wi-Fi and Bluetooth.',
+    pinCameraTileTitle: 'Ectode: Camera',
     pinCameraTileDesc: 'Opens camera scanner immediately',
-    pinScreenTileTitle: 'Ecode: Screen',
+    pinScreenTileTitle: 'Ectode: Screen',
     pinScreenTileDesc: 'Scans QR codes & barcodes from your screen',
     pinTileBtn: 'Pin',
-    quickTilesManualHint: 'You can also add them manually: pull down Quick Settings → tap Edit (✏️) → drag the Ecode tiles up.',
+    quickTilesManualHint: 'You can also add them manually: pull down Quick Settings → tap Edit (✏️) → drag the Ectode tiles up.',
     tilePinAdded: 'Tile pinned to Quick Settings',
     tilePinAlreadyAdded: 'This tile is already in Quick Settings',
     tilePinDismissed: 'Tile pin request cancelled',
-    tilePinManualTip: 'Open Quick Settings, tap Edit (✏️), and drag the Ecode tile into your active panel.',
+    tilePinManualTip: 'Open Quick Settings, tap Edit (✏️), and drag the Ectode tile into your active panel.',
     tilePinError: 'Unable to open pin dialog. Add the tile via Quick Settings Edit.',
-    aboutSection: 'About Ecode',
+    aboutSection: 'About Ectode',
     appVersion: 'Version',
 
     // Scanner
@@ -342,11 +356,11 @@ export const TRANSLATIONS = {
     screenModeTip: 'Select a window containing a QR code or barcode to scan.',
     screenModeTipNative: 'Tap the button below, select "Entire screen" or an app in the system prompt, then switch to the code.',
     scanningScreenNativeTitle: 'Screen Scanning Active',
-    scanningScreenNativeDesc: 'Switch to your messenger, browser, or ticket — as soon as a QR code or barcode appears on screen, Ecode will detect it automatically.',
-    screenNotifTitle: 'Ecode • Screen Scanning',
+    scanningScreenNativeDesc: 'Switch to your messenger, browser, or ticket — as soon as a QR code or barcode appears on screen, Ectode will detect it automatically.',
+    screenNotifTitle: 'Ectode • Screen Scanning',
     screenNotifText: 'Open the app showing the QR code or barcode',
     screenNotifStop: 'Stop',
-    screenDetectedTitle: 'Code Detected by Ecode',
+    screenDetectedTitle: 'Code Detected by Ectode',
     screenDetectedText: 'Tap to open and save the code',
     screenshotTitle: 'Screenshot or Photo',
     screenshotDesc: 'Select an image with a QR code or barcode to scan.',
@@ -371,8 +385,12 @@ export const TRANSLATIONS = {
     vectorOriginalBadge: 'Vector Graphics',
     eccCorrection: 'ECC',
     formatBadgeLabel: 'Format',
+    downloadBtn: 'Download',
+    downloadedBtn: 'Saved',
+    downloadMenuTitle: 'Choose Format',
     downloadPng: 'PNG',
     downloadSvg: 'SVG',
+    downloadJpeg: 'JPEG',
     copyImage: 'Image',
     copiedImage: 'Copied',
     shareQr: 'Share',
@@ -399,7 +417,7 @@ export const TRANSLATIONS = {
     savedSuccessText: 'Saved in',
 
     // Turnstile Modal
-    turnstileTitle: 'Ecode • Max Brightness & Contrast',
+    turnstileTitle: 'Max Brightness',
     turnstileTip: 'Hold your screen to the turnstile or checkout scanner',
     turnstileClose: 'Done',
 
@@ -420,7 +438,7 @@ export const TRANSLATIONS = {
     moveToTitle: 'Move to:',
     deleteTooltip: 'Delete Code',
     deleteConfirmTitle: 'Delete Code?',
-    deleteConfirm: 'Delete this code from Ecode gallery?',
+    deleteConfirm: 'Delete this code from Ectode gallery?',
     deleteBtn: 'Delete',
     backupBtn: 'Backup',
     restoreBtn: 'Restore',
@@ -428,7 +446,7 @@ export const TRANSLATIONS = {
     backupError: 'Failed to read backup file.',
     sortNewest: 'Newest',
     sortOldest: 'Oldest',
-    sortFavorites: '⭐ Favorites',
+    sortFavorites: 'Favorites',
     sortAlphabetical: 'A-Z',
     sourceCamera: 'Camera',
     sourceScreen: 'Screen Capture',
@@ -440,7 +458,7 @@ export const TRANSLATIONS = {
     liveVectorPreview: 'Preview',
     pristineVectorQuality: 'Vector Graphics',
     saveToGalleryGen: 'Save to Gallery',
-    savedToGalleryGen: 'Saved to Ecode!',
+    savedToGalleryGen: 'Saved to Ectode!',
     templateText: 'Text',
     templateUrl: 'URL',
     templateWifi: 'Wi-Fi',
@@ -499,7 +517,7 @@ export const TRANSLATIONS = {
     blueLabel: 'B',
 
     // Folder Modal & Management
-    newFolderTitle: 'New Folder in Ecode',
+    newFolderTitle: 'New Folder in Ectode',
     editFolderTitle: 'Edit Folder',
     manageFoldersTitle: 'Manage Folders',
     manageFoldersDesc: 'Create folders, customize icons & colors, or remove unused ones',
@@ -519,7 +537,7 @@ export const TRANSLATIONS = {
     saveFolderBtn: 'Save Folder',
 
     // About Modal
-    aboutTitle: 'Ecode',
+    aboutTitle: 'Ectode',
     feature1Title: 'Screen & Camera Capture',
     feature1Desc: 'Read QR codes and barcodes directly from your active screen in any app or via camera.',
     feature2Title: 'Code Reconstruction',
@@ -539,19 +557,31 @@ export const TRANSLATIONS = {
   },
 } as const;
 
-export function getInitialLanguage(): Language {
-  try {
-    const saved = localStorage.getItem('ecode_language');
-    if (saved === 'ru' || saved === 'en') return saved;
-    return typeof navigator !== 'undefined' && navigator.language?.startsWith('ru') ? 'ru' : 'en';
-  } catch {
+export function resolveDeviceLanguage(locale?: string | null): Language {
+  const normalized = (locale || '').trim().toLowerCase();
+  if (normalized === 'ru' || normalized.startsWith('ru-') || normalized.startsWith('ru_')) {
     return 'ru';
   }
+  return 'en';
+}
+
+export function getInitialLanguage(): Language {
+  try {
+    const saved = localStorage.getItem('ectode_language') || localStorage.getItem('ecode_language');
+    if (saved === 'ru' || saved === 'en') return saved;
+  } catch {
+    // Ignore storage access errors and fall back to device language
+  }
+  const primaryLocale =
+    typeof navigator !== 'undefined'
+      ? navigator.language || navigator.languages?.[0]
+      : undefined;
+  return resolveDeviceLanguage(primaryLocale);
 }
 
 export function saveLanguagePreference(lang: Language): void {
   try {
-    localStorage.setItem('ecode_language', lang);
+    localStorage.setItem('ectode_language', lang);
   } catch {}
 }
 

@@ -1,9 +1,20 @@
-import { StoredQrItem, Folder, DEFAULT_FOLDERS, buildWifiQrString, buildVCardQrString } from './qrLogic';
+import {
+  StoredQrItem,
+  Folder,
+  DEFAULT_FOLDERS,
+  DownloadImageFormat,
+  normalizeDownloadImageFormat,
+  buildWifiQrString,
+  buildVCardQrString,
+} from './qrLogic';
 
 const STORAGE_QR_KEY = 'clean_qr_app_items_v1';
 const STORAGE_FOLDERS_KEY = 'clean_qr_app_folders_v1';
-const STORAGE_DEMO_MODE_KEY = 'ecode_demo_mode_v1';
-const STORAGE_SHOW_GALLERY_BADGE_KEY = 'ecode_show_gallery_badge_v1';
+const STORAGE_DEMO_MODE_KEY = 'ectode_demo_mode_v1';
+const LEGACY_DEMO_MODE_KEY = 'ecode_demo_mode_v1';
+const STORAGE_SHOW_GALLERY_BADGE_KEY = 'ectode_show_gallery_badge_v1';
+const LEGACY_SHOW_GALLERY_BADGE_KEY = 'ecode_show_gallery_badge_v1';
+const STORAGE_DOWNLOAD_FORMAT_KEY = 'ectode_download_format_v1';
 
 export const SEED_ITEMS: StoredQrItem[] = [
   {
@@ -122,7 +133,8 @@ export function saveStoredFolders(folders: Folder[]): void {
 
 export function loadDemoMode(): boolean {
   try {
-    return localStorage.getItem(STORAGE_DEMO_MODE_KEY) === 'true';
+    const value = localStorage.getItem(STORAGE_DEMO_MODE_KEY) ?? localStorage.getItem(LEGACY_DEMO_MODE_KEY);
+    return value === 'true';
   } catch {
     return false;
   }
@@ -138,7 +150,8 @@ export function saveDemoMode(enabled: boolean): void {
 
 export function loadShowGalleryBadge(): boolean {
   try {
-    return localStorage.getItem(STORAGE_SHOW_GALLERY_BADGE_KEY) !== 'false';
+    const value = localStorage.getItem(STORAGE_SHOW_GALLERY_BADGE_KEY) ?? localStorage.getItem(LEGACY_SHOW_GALLERY_BADGE_KEY);
+    return value !== 'false';
   } catch {
     return true;
   }
@@ -149,6 +162,23 @@ export function saveShowGalleryBadge(enabled: boolean): void {
     localStorage.setItem(STORAGE_SHOW_GALLERY_BADGE_KEY, enabled ? 'true' : 'false');
   } catch (e) {
     console.error('Failed to save gallery badge setting to localStorage:', e);
+  }
+}
+
+export function loadDownloadFormat(): DownloadImageFormat {
+  try {
+    const raw = localStorage.getItem(STORAGE_DOWNLOAD_FORMAT_KEY);
+    return normalizeDownloadImageFormat(raw);
+  } catch {
+    return 'png';
+  }
+}
+
+export function saveDownloadFormat(format: DownloadImageFormat): void {
+  try {
+    localStorage.setItem(STORAGE_DOWNLOAD_FORMAT_KEY, normalizeDownloadImageFormat(format));
+  } catch (e) {
+    console.error('Failed to save download format to localStorage:', e);
   }
 }
 

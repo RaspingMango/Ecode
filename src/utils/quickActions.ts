@@ -40,10 +40,10 @@ const QuickAction = registerPlugin<QuickActionPlugin>('QuickAction');
 export function normalizeQuickAction(raw?: string | null): QuickActionType | null {
   if (!raw) return null;
   const cleaned = raw.trim().toLowerCase();
-  if (cleaned === 'camera' || cleaned === 'com.raspingmango.ecode.action.quick_scan_camera') {
+  if (cleaned === 'camera' || cleaned === 'com.raspingmango.ectode.action.quick_scan_camera') {
     return 'camera';
   }
-  if (cleaned === 'screen' || cleaned === 'com.raspingmango.ecode.action.quick_scan_screen') {
+  if (cleaned === 'screen' || cleaned === 'com.raspingmango.ectode.action.quick_scan_screen') {
     return 'screen';
   }
   return null;

@@ -2,6 +2,8 @@ import QRCode from 'qrcode';
 import JsBarcode from 'jsbarcode';
 import {
   CodeFormat,
+  DownloadImageFormat,
+  getDownloadFileExtension,
   getJsBarcodeFormat,
   is1DBarcodeFormat,
   validateBarcodePayload,
@@ -20,6 +22,7 @@ export interface QrRenderOptions {
   width?: number;
   codeFormat?: CodeFormat;
   displayValue?: boolean;
+  imageFormat?: 'png' | 'jpeg';
 }
 
 export const DEFAULT_QR_OPTIONS: Required<QrRenderOptions> = {
@@ -30,6 +33,7 @@ export const DEFAULT_QR_OPTIONS: Required<QrRenderOptions> = {
   width: 512,
   codeFormat: 'QR_CODE',
   displayValue: true,
+  imageFormat: 'png',
 };
 
 function getBarcodeDimensions(targetWidth: number, margin: number) {
@@ -71,10 +75,26 @@ export async function generateQrDataUrl(
       fontSize,
       textMargin: 6,
     });
-    return canvas.toDataURL('image/png');
+    return opts.imageFormat === 'jpeg'
+      ? canvas.toDataURL('image/jpeg', 0.95)
+      : canvas.toDataURL('image/png');
   }
 
   try {
+    if (opts.imageFormat === 'jpeg') {
+      return await QRCode.toDataURL(text, {
+        type: 'image/jpeg',
+        rendererOpts: { quality: 0.95 },
+        errorCorrectionLevel: opts.ecc,
+        margin: opts.margin,
+        width: opts.width,
+        color: {
+          dark: opts.fgColor,
+          light: opts.bgColor,
+        },
+      });
+    }
+
     return await QRCode.toDataURL(text, {
       errorCorrectionLevel: opts.ecc,
       margin: opts.margin,
@@ -141,15 +161,15 @@ export async function generateQrSvg(
 }
 
 /**
- * Download pristine QR or barcode as PNG or SVG file
+ * Download pristine QR or barcode as PNG, SVG, or JPEG file
  */
 export async function downloadQr(
   text: string,
-  fileName: string = 'clean-qr-code',
-  format: 'png' | 'svg' = 'png',
+  fileName: string = 'ectode-code',
+  format: DownloadImageFormat = 'png',
   options: QrRenderOptions = {}
 ): Promise<{ saved: boolean; fileName: string }> {
-  const fullFileName = sanitizeDownloadFileName(fileName, format);
+  const fullFileName = sanitizeDownloadFileName(fileName, getDownloadFileExtension(format));
 
   if (format === 'svg') {
     const svgStr = await generateQrSvg(text, options);
@@ -158,14 +178,20 @@ export async function downloadQr(
       mimeType: 'image/svg+xml',
       textContent: svgStr,
     });
-  } else {
-    const dataUrl = await generateQrDataUrl(text, { ...options, width: 1024 });
-    return saveFileToDevice({
-      fileName: fullFileName,
-      mimeType: 'image/png',
-      dataUrl,
-    });
   }
+
+  const imageFormat = format === 'jpeg' ? 'jpeg' : 'png';
+  const mimeType = imageFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
+  const dataUrl = await generateQrDataUrl(text, {
+    ...options,
+    width: 1024,
+    imageFormat,
+  });
+  return saveFileToDevice({
+    fileName: fullFileName,
+    mimeType,
+    dataUrl,
+  });
 }
 
 /**
@@ -177,7 +203,7 @@ export async function copyQrToClipboard(
 ): Promise<boolean> {
   try {
     const dataUrl = await generateQrDataUrl(text, { ...options, width: 768 });
-    return await copyImageToDeviceClipboard(dataUrl, 'Ecode');
+    return await copyImageToDeviceClipboard(dataUrl, 'Ectode');
   } catch (e) {
     console.warn('Clipboard write failed:', e);
     return false;
