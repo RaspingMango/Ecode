@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X, FolderPlus, Check } from 'lucide-react';
 import { Folder } from '../utils/qrLogic';
 import { hexToRgb, normalizeHexColor, rgbToHex } from '../utils/color';
@@ -42,23 +42,36 @@ export function FolderModal({
   const [hexDraft, setHexDraft] = useState(FOLDER_COLORS[0]);
   const [icon, setIcon] = useState('Folder');
   const [error, setError] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
+    let initialName = '';
     if (existingFolder) {
       const initialColor = normalizeHexColor(existingFolder.color || FOLDER_COLORS[0], FOLDER_COLORS[0]);
-      setName(getLocalizedFolderName(existingFolder.id, existingFolder.name, lang));
+      initialName = getLocalizedFolderName(existingFolder.id, existingFolder.name, lang);
       setColor(initialColor);
       setHexDraft(initialColor);
       setIcon(existingFolder.icon || 'Folder');
     } else {
-      setName('');
       setColor(FOLDER_COLORS[0]);
       setHexDraft(FOLDER_COLORS[0]);
       setIcon('Folder');
     }
+    setName(initialName);
+    if (nameInputRef.current) {
+      nameInputRef.current.value = initialName;
+    }
     setError('');
   }, [isOpen, existingFolder, lang]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const timer = setTimeout(() => {
+      nameInputRef.current?.focus();
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [isOpen]);
 
   useEffect(() => {
     setHexDraft(color);
@@ -87,11 +100,21 @@ export function FolderModal({
     setColor(normalized);
   };
 
+  const syncNameFromInput = (nextValue: string) => {
+    setName(nextValue);
+    if (error && nextValue.trim()) {
+      setError('');
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     playTapSound();
 
-    if (!name.trim()) {
+    const currentValue = nameInputRef.current ? nameInputRef.current.value : name;
+    const trimmedName = currentValue.trim();
+
+    if (!trimmedName) {
       setError(t.folderNameError);
       return;
     }
@@ -99,12 +122,15 @@ export function FolderModal({
     triggerHaptic(20);
     onSave({
       id: existingFolder?.id || `folder-${Date.now()}`,
-      name: name.trim(),
+      name: trimmedName,
       color,
       icon,
       isDefault: existingFolder?.isDefault,
     });
     setName('');
+    if (nameInputRef.current) {
+      nameInputRef.current.value = '';
+    }
     setError('');
     onClose();
   };
@@ -174,15 +200,17 @@ export function FolderModal({
               {t.folderNameLabel}
             </label>
             <input
+              ref={nameInputRef}
               type="text"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                if (error) setError('');
-              }}
+              defaultValue={existingFolder ? getLocalizedFolderName(existingFolder.id, existingFolder.name, lang) : ''}
+              onInput={(e) => syncNameFromInput(e.currentTarget.value)}
+              onChange={(e) => syncNameFromInput(e.currentTarget.value)}
+              onCompositionUpdate={(e) => syncNameFromInput(e.currentTarget.value)}
+              onCompositionEnd={(e) => syncNameFromInput(e.currentTarget.value)}
+              onBlur={(e) => syncNameFromInput(e.currentTarget.value)}
               placeholder={t.folderNamePlaceholder}
-              autoFocus
-              className={`w-full px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 border-none ${
+              enterKeyHint="done"
+              className={`w-full px-4 py-3 rounded-2xl text-sm select-text focus:outline-none focus:ring-2 border-none ${
                 isDark
                   ? 'bg-[#282a2f] text-[#e3e2e6] placeholder:text-[#8e918f] focus:ring-[#a8f09b]'
                   : 'bg-[#eef1ec] text-[#191c19] placeholder:text-[#575a56] focus:ring-[#2e6c31]'

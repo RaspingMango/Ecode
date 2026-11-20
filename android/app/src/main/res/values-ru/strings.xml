@@ -5,4 +5,10 @@
     <string name="quick_tile_screen">Ectode: Экран</string>
     <string name="quick_tile_screen_sub">Захват экрана</string>
     <string name="quick_tile_screen_active">Сканирование экрана…</string>
+    <string name="screen_capture_notif_title">Ectode</string>
+    <string name="screen_capture_quick_notif_text">Поиск QR или штрихкода на экране…</string>
+    <string name="screen_capture_notif_stop">Остановить</string>
+    <string name="screen_capture_detected_title">Код распознан</string>
+    <string name="screen_capture_detected_text">Нажмите, чтобы открыть в Ectode</string>
+    <string name="screen_capture_not_found">QR-код или штрихкод на экране не найден</string>
 </resources>

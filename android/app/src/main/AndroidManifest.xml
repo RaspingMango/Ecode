@@ -30,6 +30,16 @@
 
         </activity>
 
+        <activity
+            android:name=".QuickScreenCaptureActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:theme="@style/AppTheme.TranslucentOverlay"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode" />
+
         <service
             android:name=".ScreenCaptureService"
             android:exported="false"

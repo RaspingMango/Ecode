@@ -20,6 +20,15 @@ const legacyStoragePermission = '<uses-permission android:name="android.permissi
 const fgServicePermission = '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />';
 const fgMediaProjectionPermission = '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />';
 const postNotificationsPermission = '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />';
+const quickScreenCaptureActivity = `<activity
+            android:name=".QuickScreenCaptureActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:theme="@style/AppTheme.TranslucentOverlay"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode" />`;
 const screenCaptureService = `<service
             android:name=".ScreenCaptureService"
             android:exported="false"
@@ -78,10 +87,18 @@ for (const perm of [
   }
 }
 
-if (!manifest.includes('android:name=".ScreenCaptureService"')) {
+if (!manifest.includes('android:name=".QuickScreenCaptureActivity"')) {
   manifest = manifest.replace(
     /(<\/activity>)/,
-    `$1\n\n        ${screenCaptureService}`
+    `$1\n\n        ${quickScreenCaptureActivity}`
+  );
+  changed = true;
+}
+
+if (!manifest.includes('android:name=".ScreenCaptureService"')) {
+  manifest = manifest.replace(
+    /(<service\b|<\/application>)/,
+    `${screenCaptureService}\n\n        $1`
   );
   changed = true;
 }
@@ -112,7 +129,7 @@ if (changed) {
 // Sync versionName in android/app/build.gradle with package.json version when present
 if (fs.existsSync(buildGradlePath) && fs.existsSync(pkgPath)) {
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-  const appVersion = typeof pkg.version === 'string' && pkg.version !== '0.0.0' ? pkg.version : '1.4.0';
+  const appVersion = typeof pkg.version === 'string' && pkg.version !== '0.0.0' ? pkg.version : '1.4.1';
   const gradle = fs.readFileSync(buildGradlePath, 'utf8');
   const nextGradle = gradle.replace(/versionName\s+"[^"]*"/, `versionName "${appVersion}"`);
   if (nextGradle !== gradle) {

@@ -18,6 +18,12 @@
     background-color: #f7f9f5;
     color: #191c19;
   }
+
+  input,
+  textarea {
+    -webkit-user-select: text;
+    user-select: text;
+  }
 }
 
 .safe-top-header {

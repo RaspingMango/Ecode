@@ -9,4 +9,10 @@
     <string name="quick_tile_screen">Ectode: Screen</string>
     <string name="quick_tile_screen_sub">Scan from screen</string>
     <string name="quick_tile_screen_active">Scanning screen…</string>
+    <string name="screen_capture_notif_title">Ectode</string>
+    <string name="screen_capture_quick_notif_text">Looking for QR or barcode on screen…</string>
+    <string name="screen_capture_notif_stop">Stop</string>
+    <string name="screen_capture_detected_title">Code detected</string>
+    <string name="screen_capture_detected_text">Tap to open Ectode</string>
+    <string name="screen_capture_not_found">No QR code or barcode found on screen</string>
 </resources>

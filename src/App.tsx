@@ -42,7 +42,7 @@ import {
   loadDownloadFormat,
   saveDownloadFormat,
 } from './utils/storage';
-import { playTapSound, triggerHaptic } from './utils/audio';
+import { playScanSuccessSound, playTapSound, triggerHaptic } from './utils/audio';
 import { saveFileToDevice } from './utils/nativeFiles';
 import {
   addQuickActionListener,
@@ -51,6 +51,14 @@ import {
   type QuickActionRequest,
   type QuickActionType,
 } from './utils/quickActions';
+import {
+  addScreenCodeDetectedListener,
+  consumePendingScreenDetection,
+  isNativeScreenCapturePlatform,
+  mapNativeCodeFormat,
+  shouldAcceptDetectedCode,
+  type ScreenCaptureDetection,
+} from './utils/screenCapture';
 import { Language, TRANSLATIONS, getInitialLanguage, saveLanguagePreference } from './utils/i18n';
 import { ThemeMode, getInitialTheme, applyTheme } from './utils/theme';
 
@@ -97,6 +105,7 @@ export default function App() {
   const logoTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const quickActionNonceRef = useRef(0);
+  const lastScreenDetectionRef = useRef<{ key: string | null; at: number }>({ key: null, at: 0 });
 
   // Save items and folders on change
   useEffect(() => {
@@ -157,6 +166,70 @@ export default function App() {
     const handleResumeCheck = () => {
       if (document.visibilityState === 'visible') {
         void checkPending();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleResumeCheck);
+    window.addEventListener('focus', handleResumeCheck);
+
+    return () => {
+      disposed = true;
+      document.removeEventListener('visibilitychange', handleResumeCheck);
+      window.removeEventListener('focus', handleResumeCheck);
+      if (listenerHandle) {
+        void listenerHandle.remove();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isNativeScreenCapturePlatform()) return;
+    let disposed = false;
+    let listenerHandle: { remove: () => Promise<void> } | null = null;
+
+    const deliverDetection = (detection: ScreenCaptureDetection | null) => {
+      if (disposed || !detection) return;
+      const now = Date.now();
+      const check = shouldAcceptDetectedCode(
+        detection,
+        lastScreenDetectionRef.current.key,
+        lastScreenDetectionRef.current.at,
+        now
+      );
+      if (!check.accept) return;
+
+      lastScreenDetectionRef.current = { key: check.key, at: now };
+      playScanSuccessSound();
+      triggerHaptic([40, 30, 80]);
+      setTurnstileModalOpen(false);
+      setFolderModalOpen(false);
+      setAboutOpen(false);
+      setScannedRawContent(detection.data);
+      setScannedFormat(mapNativeCodeFormat(detection.format));
+      setScannedSource('screen');
+      setSelectedItemForModal(null);
+      setCleanModalOpen(true);
+    };
+
+    const checkPendingDetection = async () => {
+      const pending = await consumePendingScreenDetection();
+      if (!disposed && pending) {
+        deliverDetection(pending);
+      }
+    };
+
+    const setup = async () => {
+      listenerHandle = await addScreenCodeDetectedListener((event) => {
+        deliverDetection(event);
+      });
+      await checkPendingDetection();
+    };
+
+    void setup();
+
+    const handleResumeCheck = () => {
+      if (document.visibilityState === 'visible') {
+        void checkPendingDetection();
       }
     };
 
@@ -714,7 +787,7 @@ export default function App() {
                   <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                     theme === 'dark' ? 'bg-[#244927] text-[#a8f09b]' : 'bg-[#e8f5e9] text-[#2e6c31]'
                   }`}>
-                    v1.4.0
+                    v1.4.1
                   </span>
                 </div>
               </div>

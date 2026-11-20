@@ -52,14 +52,10 @@ public class QuickScreenTileService extends TileService {
     }
 
     private void launchScreenScanner() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setAction(QuickActionBridge.INTENT_ACTION_SCREEN);
-        intent.putExtra(QuickActionBridge.EXTRA_QUICK_ACTION, QuickActionBridge.ACTION_SCREEN);
+        Intent intent = new Intent(this, QuickScreenCaptureActivity.class);
         intent.addFlags(
             Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_SINGLE_TOP
-                | Intent.FLAG_ACTIVITY_CLEAR_TOP
-                | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                | Intent.FLAG_ACTIVITY_NO_ANIMATION
         );
 
         openAndCollapse(intent, 202);

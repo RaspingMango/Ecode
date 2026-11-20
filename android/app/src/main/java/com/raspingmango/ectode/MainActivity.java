@@ -15,6 +15,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(QuickActionPlugin.class);
         super.onCreate(savedInstanceState);
         QuickActionBridge.publishIntentIfQuickAction(getIntent());
+        publishCapturedIntentIfPresent(getIntent());
     }
 
     @Override
@@ -22,5 +23,16 @@ public class MainActivity extends BridgeActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         QuickActionBridge.publishIntentIfQuickAction(intent);
+        publishCapturedIntentIfPresent(intent);
+    }
+
+    private void publishCapturedIntentIfPresent(Intent intent) {
+        if (intent == null) return;
+        String capturedData = intent.getStringExtra(ScreenCaptureService.EXTRA_CAPTURED_DATA);
+        if (capturedData == null || capturedData.isEmpty()) return;
+        String capturedFormat = intent.getStringExtra(ScreenCaptureService.EXTRA_CAPTURED_FORMAT);
+        intent.removeExtra(ScreenCaptureService.EXTRA_CAPTURED_DATA);
+        intent.removeExtra(ScreenCaptureService.EXTRA_CAPTURED_FORMAT);
+        ScreenCaptureBridge.publishIfAbsent(capturedData, capturedFormat);
     }
 }

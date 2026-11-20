@@ -67,6 +67,20 @@ public final class ScreenCaptureBridge {
         }
     }
 
+    public static void publishIfAbsent(String data, String format) {
+        if (data == null || data.isEmpty()) return;
+        Listener currentListener = null;
+        synchronized (LOCK) {
+            if (pendingDetection == null) {
+                pendingDetection = new DetectionResult(data, format, System.currentTimeMillis());
+                currentListener = listener;
+            }
+        }
+        if (currentListener != null) {
+            currentListener.onDetectionAvailable();
+        }
+    }
+
     public static DetectionResult consumePendingDetection() {
         synchronized (LOCK) {
             DetectionResult result = pendingDetection;

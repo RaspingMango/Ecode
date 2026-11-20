@@ -27,6 +27,7 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
+import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 
@@ -58,6 +59,9 @@ public class ScreenCaptureService extends Service {
     public static final String EXTRA_NOTIF_STOP = "notifStop";
     public static final String EXTRA_DETECTED_TITLE = "detectedTitle";
     public static final String EXTRA_DETECTED_TEXT = "detectedText";
+    public static final String EXTRA_QUICK_ONESHOT = "quickOneShot";
+    public static final String EXTRA_CAPTURED_DATA = "capturedData";
+    public static final String EXTRA_CAPTURED_FORMAT = "capturedFormat";
 
     public static final int ONGOING_NOTIF_ID = 4101;
     public static final int DETECTED_NOTIF_ID = 4102;
@@ -67,6 +71,9 @@ public class ScreenCaptureService extends Service {
 
     private static final long SCAN_INTERVAL_MS = 400L;
     private static final long INITIAL_SETTLE_MS = 350L;
+    private static final long QUICK_SCAN_INTERVAL_MS = 160L;
+    private static final long QUICK_INITIAL_SETTLE_MS = 180L;
+    private static final long QUICK_SCAN_TIMEOUT_MS = 4500L;
     private static final int MAX_CAPTURE_DIMENSION = 1080;
 
     private MediaProjection mediaProjection;
@@ -83,12 +90,19 @@ public class ScreenCaptureService extends Service {
 
     private volatile boolean isStopping = false;
     private volatile boolean hasDetected = false;
+    private volatile boolean hasBufferedFrame = false;
+    private int bufferedWidth = 0;
+    private int bufferedHeight = 0;
+    private boolean quickOneShot = false;
     private long captureStartMs = 0L;
     private long lastScanMs = 0L;
     private int scanAttemptCount = 0;
 
     private String detectedTitle = "Ectode";
     private String detectedText = "Code detected — tap to open";
+
+    private final Runnable pendingDecodeRunnable = this::decodeBufferedFrameIfDue;
+    private final Runnable quickTimeoutRunnable = this::onQuickScanTimeout;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -123,6 +137,8 @@ public class ScreenCaptureService extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
+
+        quickOneShot = intent.getBooleanExtra(EXTRA_QUICK_ONESHOT, false);
 
         final String notifTitle = nonEmptyOrDefault(intent.getStringExtra(EXTRA_NOTIF_TITLE), "Ectode");
         final String notifText = nonEmptyOrDefault(
@@ -163,6 +179,9 @@ public class ScreenCaptureService extends Service {
         releaseResourcesOnly();
         isStopping = false;
         hasDetected = false;
+        hasBufferedFrame = false;
+        bufferedWidth = 0;
+        bufferedHeight = 0;
         captureStartMs = System.currentTimeMillis();
         lastScanMs = 0L;
         scanAttemptCount = 0;
@@ -231,6 +250,9 @@ public class ScreenCaptureService extends Service {
             ScreenCaptureBridge.clearPendingDetection();
             ScreenCaptureBridge.notifyStateChanged(true, "started");
             requestScreenTileSync();
+            if (quickOneShot && workerHandler != null) {
+                workerHandler.postDelayed(quickTimeoutRunnable, QUICK_SCAN_TIMEOUT_MS);
+            }
         } catch (Exception e) {
             stopCaptureInternal("virtual_display_error");
         }
@@ -253,16 +275,6 @@ public class ScreenCaptureService extends Service {
         try {
             image = reader.acquireLatestImage();
             if (image == null) return;
-
-            long now = System.currentTimeMillis();
-            if (now - captureStartMs < INITIAL_SETTLE_MS) {
-                return;
-            }
-            if (now - lastScanMs < SCAN_INTERVAL_MS) {
-                return;
-            }
-            lastScanMs = now;
-            scanAttemptCount++;
 
             int width = image.getWidth();
             int height = image.getHeight();
@@ -307,27 +319,75 @@ public class ScreenCaptureService extends Service {
                 }
             }
 
-            Result decoded = decodePixels(reusablePixels, width, height);
-            if (decoded == null && (scanAttemptCount % 2 == 0)) {
-                int[] rotated = rotatePixels90Cw(reusablePixels, width, height);
-                decoded = decodePixels(rotated, height, width);
-            }
-
-            if (decoded != null && decoded.getText() != null && !decoded.getText().isEmpty()) {
-                hasDetected = true;
-                String text = decoded.getText();
-                String format = decoded.getBarcodeFormat() != null
-                    ? decoded.getBarcodeFormat().name()
-                    : "QR_CODE";
-
-                onCodeFound(text, format);
-            }
+            bufferedWidth = width;
+            bufferedHeight = height;
+            hasBufferedFrame = true;
+            scheduleOrDecodeBufferedFrame();
         } catch (Exception ignored) {
         } finally {
             if (image != null) {
                 image.close();
             }
         }
+    }
+
+    private void scheduleOrDecodeBufferedFrame() {
+        if (isStopping || hasDetected || !hasBufferedFrame) return;
+
+        long settleMs = quickOneShot ? QUICK_INITIAL_SETTLE_MS : INITIAL_SETTLE_MS;
+        long scanIntervalMs = quickOneShot ? QUICK_SCAN_INTERVAL_MS : SCAN_INTERVAL_MS;
+        long now = System.currentTimeMillis();
+        long elapsedSinceStart = now - captureStartMs;
+        long elapsedSinceLast = lastScanMs == 0L ? scanIntervalMs : (now - lastScanMs);
+
+        if (elapsedSinceStart >= settleMs && elapsedSinceLast >= scanIntervalMs) {
+            decodeBufferedFrameIfDue();
+            return;
+        }
+
+        if (workerHandler != null) {
+            long delay = Math.max(
+                Math.max(0L, settleMs - elapsedSinceStart),
+                Math.max(0L, scanIntervalMs - elapsedSinceLast)
+            );
+            workerHandler.removeCallbacks(pendingDecodeRunnable);
+            workerHandler.postDelayed(pendingDecodeRunnable, delay);
+        }
+    }
+
+    private void decodeBufferedFrameIfDue() {
+        if (isStopping || hasDetected || !hasBufferedFrame) return;
+        if (reusablePixels == null || bufferedWidth <= 0 || bufferedHeight <= 0) return;
+
+        lastScanMs = System.currentTimeMillis();
+        scanAttemptCount++;
+
+        Result decoded = decodePixels(reusablePixels, bufferedWidth, bufferedHeight);
+        if (decoded == null && (scanAttemptCount % 2 == 0)) {
+            int[] rotated = rotatePixels90Cw(reusablePixels, bufferedWidth, bufferedHeight);
+            decoded = decodePixels(rotated, bufferedHeight, bufferedWidth);
+        }
+
+        if (decoded != null && decoded.getText() != null && !decoded.getText().isEmpty()) {
+            hasDetected = true;
+            hasBufferedFrame = false;
+            String text = decoded.getText();
+            String format = decoded.getBarcodeFormat() != null
+                ? decoded.getBarcodeFormat().name()
+                : "QR_CODE";
+
+            onCodeFound(text, format);
+        }
+    }
+
+    private void onQuickScanTimeout() {
+        if (isStopping || hasDetected) return;
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+        mainHandler.post(() -> {
+            if (isStopping || hasDetected) return;
+            Toast.makeText(getApplicationContext(), R.string.screen_capture_not_found, Toast.LENGTH_SHORT).show();
+            stopCaptureInternal("timeout");
+        });
     }
 
     private Result decodePixels(int[] pixels, int width, int height) {
@@ -374,12 +434,14 @@ public class ScreenCaptureService extends Service {
 
     private void onCodeFound(String text, String format) {
         ScreenCaptureBridge.publishDetected(text, format);
-        showDetectedNotification();
+        showDetectedNotification(text, format);
 
         Handler mainHandler = new Handler(Looper.getMainLooper());
         mainHandler.post(() -> {
             try {
                 Intent openIntent = new Intent(this, MainActivity.class);
+                openIntent.putExtra(EXTRA_CAPTURED_DATA, text);
+                openIntent.putExtra(EXTRA_CAPTURED_FORMAT, format);
                 openIntent.addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK
                         | Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -518,11 +580,13 @@ public class ScreenCaptureService extends Service {
             .build();
     }
 
-    private void showDetectedNotification() {
+    private void showDetectedNotification(String text, String format) {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager == null) return;
 
         Intent openIntent = new Intent(this, MainActivity.class);
+        openIntent.putExtra(EXTRA_CAPTURED_DATA, text);
+        openIntent.putExtra(EXTRA_CAPTURED_FORMAT, format);
         openIntent.addFlags(
             Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -626,6 +690,11 @@ public class ScreenCaptureService extends Service {
             mediaProjection = null;
             projectionCallback = null;
         }
+
+        if (workerHandler != null) {
+            workerHandler.removeCallbacksAndMessages(null);
+        }
+        hasBufferedFrame = false;
 
         if (workerThread != null) {
             workerThread.quitSafely();

@@ -23,12 +23,7 @@ import {
   startNativeScreenCapture,
   stopNativeScreenCapture,
   getNativeScreenCaptureStatus,
-  consumePendingScreenDetection,
-  addScreenCodeDetectedListener,
   addScreenCaptureStateListener,
-  mapNativeCodeFormat,
-  shouldAcceptDetectedCode,
-  type ScreenCaptureDetection,
 } from '../utils/screenCapture';
 import { Language, TRANSLATIONS } from '../utils/i18n';
 import { ThemeMode } from '../utils/theme';
@@ -73,32 +68,9 @@ export function ScannerView({
   const animFrameIdRef = useRef<number | null>(null);
   const lastScanTimestampRef = useRef<number>(0);
   const nativeScreenActiveRef = useRef<boolean>(false);
-  const lastNativeDetectionRef = useRef<{ key: string | null; at: number }>({ key: null, at: 0 });
   const lastHandledQuickNonceRef = useRef<number | null>(null);
   const pendingAutoScreenStartRef = useRef<boolean>(false);
   const isNativeScreen = isNativeScreenCapturePlatform();
-
-  const deliverNativeDetection = useCallback(
-    (detection: ScreenCaptureDetection | null) => {
-      if (!detection) return;
-      const now = Date.now();
-      const check = shouldAcceptDetectedCode(
-        detection,
-        lastNativeDetectionRef.current.key,
-        lastNativeDetectionRef.current.at,
-        now
-      );
-      if (!check.accept) return;
-
-      lastNativeDetectionRef.current = { key: check.key, at: now };
-      nativeScreenActiveRef.current = false;
-      setIsScanning(false);
-      playScanSuccessSound();
-      triggerHaptic([40, 30, 80]);
-      onQrDetected(detection.data, 'screen', mapNativeCodeFormat(detection.format));
-    },
-    [onQrDetected]
-  );
 
   // Stop active video media streams or native screen capture
   const stopCurrentStream = useCallback(() => {
@@ -295,12 +267,7 @@ export function ScannerView({
     let disposed = false;
     const handles: Array<{ remove: () => Promise<void> }> = [];
 
-    const checkPendingAndStatus = async () => {
-      const pending = await consumePendingScreenDetection();
-      if (!disposed && pending) {
-        deliverNativeDetection(pending);
-        return;
-      }
+    const checkStatus = async () => {
       const capturing = await getNativeScreenCaptureStatus();
       if (!disposed) {
         nativeScreenActiveRef.current = capturing;
@@ -311,13 +278,6 @@ export function ScannerView({
     };
 
     const setupListeners = async () => {
-      const detectedHandle = await addScreenCodeDetectedListener((event) => {
-        if (!disposed) {
-          deliverNativeDetection(event);
-        }
-      });
-      if (detectedHandle) handles.push(detectedHandle);
-
       const stateHandle = await addScreenCaptureStateListener((state) => {
         if (disposed) return;
         nativeScreenActiveRef.current = Boolean(state.capturing);
@@ -327,14 +287,14 @@ export function ScannerView({
       });
       if (stateHandle) handles.push(stateHandle);
 
-      await checkPendingAndStatus();
+      await checkStatus();
     };
 
     void setupListeners();
 
     const handleVisibilityOrFocus = () => {
       if (document.visibilityState === 'visible') {
-        void checkPendingAndStatus();
+        void checkStatus();
       }
     };
 
@@ -349,7 +309,7 @@ export function ScannerView({
         void h.remove();
       });
     };
-  }, [deliverNativeDetection, isNativeScreen, mode]);
+  }, [isNativeScreen, mode]);
 
   useEffect(() => {
     if (mode === 'camera') {
