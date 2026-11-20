@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android APK & App Bundle
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-apk:
-    name: Build Debug APK & Release
+    name: Build Android APK & AAB
     runs-on: ubuntu-latest
 
     steps:
@@ -37,22 +37,61 @@ jobs:
       - name: Build web assets & prepare Capacitor Android
         run: npm run android:prepare
 
-      - name: Build Android Debug APK
+      - name: Prepare release signing keystore (if configured)
+        id: signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          mkdir -p "${{ runner.temp }}/release-assets"
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ] && [ -n "$ANDROID_KEYSTORE_PASSWORD" ] && [ -n "$ANDROID_KEY_ALIAS" ] && [ -n "$ANDROID_KEY_PASSWORD" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n\r ' | base64 -d > "${{ runner.temp }}/release.keystore"
+            echo "KEYSTORE_PATH=${{ runner.temp }}/release.keystore" >> "$GITHUB_ENV"
+            echo "has_signing=true" >> "$GITHUB_OUTPUT"
+            echo "Release signing keystore prepared."
+          else
+            echo "has_signing=false" >> "$GITHUB_OUTPUT"
+            echo "Signing secrets not configured yet — falling back to Debug APK."
+          fi
+
+      - name: Build signed Release APK & App Bundle (.aab)
+        if: steps.signing.outputs.has_signing == 'true'
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ env.KEYSTORE_PATH }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease bundleRelease
+          cp app/build/outputs/apk/release/app-release.apk "${{ runner.temp }}/release-assets/app-release.apk"
+          cp app/build/outputs/bundle/release/app-release.aab "${{ runner.temp }}/release-assets/app-release.aab"
+
+      - name: Build Debug APK (fallback without signing secrets)
+        if: steps.signing.outputs.has_signing != 'true'
         working-directory: android
         run: |
           chmod +x ./gradlew
           ./gradlew assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk "${{ runner.temp }}/release-assets/app-debug.apk"
+
+      - name: Clean temporary keystore file
+        if: always()
+        run: rm -f "${{ runner.temp }}/release.keystore"
 
       - name: Read version from package.json
         id: package-version
         uses: martinbeentjes/npm-get-version-action@v1.3.1
 
-      - name: Create GitHub Release and Upload APK
+      - name: Create GitHub Release and Upload Artifacts
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.package-version.outputs.current-version }}
           name: Release v${{ steps.package-version.outputs.current-version }}
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+          files: ${{ runner.temp }}/release-assets/*
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

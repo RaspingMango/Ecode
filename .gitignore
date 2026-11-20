@@ -12,7 +12,11 @@ android/.gradle/
 android/build/
 android/*/build/
 android/local.properties
+android/keystore.properties
 *.apk
+*.aab
+*.jks
+*.keystore
 
 # Uploaded chat screenshots
 public/assets/aistudio/
