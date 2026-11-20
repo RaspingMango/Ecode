@@ -10,7 +10,7 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "test": "tsx --test src/utils/qrLogic.test.ts",
-    "android:prepare": "npm run build && (test -d android || npx cap add android) && node scripts/setup-android-manifest.mjs && npx cap sync android",
+    "android:prepare": "npm run build && node scripts/ensure-android-platform.mjs && node scripts/setup-android-manifest.mjs && npx cap sync android",
     "android:sync": "npm run build && node scripts/setup-android-manifest.mjs && npx cap sync android",
     "android:apk": "npm run android:prepare && cd android && ./gradlew assembleDebug",
     "android:apk:release": "npm run android:prepare && cd android && ./gradlew assembleRelease",
